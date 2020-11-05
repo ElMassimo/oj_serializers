@@ -19,9 +19,12 @@ Gem::Specification.new do |spec|
   spec.metadata['changelog_uri'] = 'https://github.com/ElMassimo/oj_serializers/blob/master/CHANGELOG.md'
 
   # Specify which files should be added to the gem when it is released.
-  # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
-  spec.files         = Dir.glob('{lib}/**/*.rb') + %w[README.md]
+  spec.files         = Dir.glob('{lib}/**/*.rb') + %w[README.md CHANGELOG.md]
   spec.require_paths = ['lib']
 
+  rails_versions = '>= 4.0'
+
   spec.add_dependency 'oj', '>= 3.8.0'
+  spec.add_runtime_dependency 'actionpack', rails_versions
+  spec.add_development_dependency 'railties', rails_versions
 end

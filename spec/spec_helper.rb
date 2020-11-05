@@ -1,7 +1,19 @@
 # frozen_string_literal: true
 
+ENV['RACK_ENV'] ||= 'test'
+
 require 'bundler/setup'
 require 'oj_serializers'
+require 'pry-byebug'
+require 'bson'
+
+class BSON::ObjectId
+  # Override: We want the internal value of the id when serializing with
+  # ActiveModelSerializers instead of a { oid: value } hash.
+  def as_json(_options = nil)
+    to_s
+  end
+end
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

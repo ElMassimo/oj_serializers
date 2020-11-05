@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
+require 'oj'
 require 'oj_serializers/version'
-
-module OjSerializers
-  class Error < StandardError; end
-  # Your code goes here...
-end
+require 'oj_serializers/setup'
+require 'oj_serializers/serializer'
