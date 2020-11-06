@@ -10,11 +10,6 @@ class OjSerializers::JsonValue
     new("[#{json_rows.join(',')}]")
   end
 
-  # Helper: Expects a JSON-encoded string and wraps them in a JSON object.
-  def self.object(json_values)
-    new("{#{json_values}}")
-  end
-
   def initialize(json)
     @json = json
   end

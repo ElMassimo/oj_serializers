@@ -10,6 +10,7 @@ class AlbumSerializer < Oj::Serializer
   )
 
   has_many :songs, serializer: SongSerializer
+  has_many :other_songs, serializer: SongSerializer, if: -> { other_songs.present? }
 
   attribute \
   def release
@@ -23,5 +24,9 @@ class AlbumSerializer < Oj::Serializer
 
   def special?
     memo.fetch(:special) { options[:special] }
+  end
+
+  def other_songs
+    []
   end
 end

@@ -1,11 +1,6 @@
 # frozen_string_literal: true
 
-begin
-  require 'active_model_serializers'
-rescue Exception => error
-  raise 'Since `active_model_serializers` is not available, you should `require "oj_serializers/sugar"` instead.'
-  raise error
-end
+require 'active_model_serializers'
 
 # Extensions: To ensure JsonStringEncoder can process ActiveModel::Serializer
 # as well.

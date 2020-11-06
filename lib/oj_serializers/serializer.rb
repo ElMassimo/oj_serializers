@@ -21,11 +21,8 @@ class OjSerializers::Serializer
   # this library might add additional options as needed.
   ALLOWED_INSTANCE_VARIABLES = %w[memo object].freeze
 
-  CACHE = if defined?(Rails)
-    Rails.cache
-  else
-    defined?(ActiveSupport::Cache::MemoryStore) ? ActiveSupport::Cache::MemoryStore.new : {}
-  end
+  CACHE = (defined?(Rails) && Rails.cache) ||
+    (defined?(ActiveSupport::Cache::MemoryStore) ? ActiveSupport::Cache::MemoryStore.new : OjSerializers::Memo.new)
 
   # Internal: The environment the app is currently running on.
   environment = ENV['RACK_ENV'] || ENV['RAILS_ENV'] || 'production'

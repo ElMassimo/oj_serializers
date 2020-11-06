@@ -3,8 +3,6 @@
 require 'spec_helper'
 
 require 'oj_serializers/json_string_encoder'
-require 'bson'
-require 'oj_serializers/json_value'
 
 class CustomValue
   def as_json(*)
@@ -27,6 +25,7 @@ RSpec.describe OjSerializers::JsonStringEncoder, type: :serializer do
     it 'should not encode strings' do
       json_string = hash.to_json
       expect_encoded_json(json_string).to eq json_string
+      expect_encoded_json(json_string, root: :string).to eq "{\"string\":#{json_string}}"
       expect_encoded_json(hash, root: :string).to eq "{\"string\":#{json_string}}"
     end
 
@@ -50,6 +49,9 @@ RSpec.describe OjSerializers::JsonStringEncoder, type: :serializer do
       complex_array = [{ complex_array: OjSerializers::JsonValue.array(json_strings) }]
       expect_encoded_json(complex_array).to eq([{ complex_array: [hash, hash] }].to_json)
       expect_encoded_json(complex_array, root: :mixed).to eq({ mixed: [{ complex_array: [hash, hash] }] }.to_json)
+
+      expect(complex.as_json.to_json).to eq([{ complex: hash }].to_json)
+      expect("#{ OjSerializers::JsonValue.new(json_string) }").to eq json_string
     end
   end
 
