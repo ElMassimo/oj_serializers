@@ -106,25 +106,9 @@ private
     writer.push_value(@object.attributes['_id'], 'id') unless @object.new_record?
   end
 
-  # Strategy: Writes an ActiveRecord or Mongoid attribute to JSON, this is the
-  # fastest strategy.
-  def write_value_using_attributes_strategy(writer, key)
+  # Strategy: Writes an Mongoid attribute to JSON, this is the fastest strategy.
+  def write_value_using_mongoid_strategy(writer, key)
     writer.push_value(@object.attributes[key], key)
-  end
-
-  # Override to detect missing attribute errors locally.
-  if DEV_MODE
-    alias original_write_value_using_attributes_strategy write_value_using_attributes_strategy
-    def write_value_using_attributes_strategy(writer, key)
-      original_write_value_using_attributes_strategy(writer, key).tap do
-        # Apply a fake selection when 'only' is not used, so that we allow
-        # read_attribute to fail on typos, renamed, and removed fields.
-        @object.__selected_fields = @object.fields.merge(@object.relations.select { |_key, value| value.embedded? }).transform_values { 1 } if defined?(Mongoid) && !@object.__selected_fields
-        @object.read_attribute(key) # Raise a missing attribute exception if it's missing.
-      end
-    rescue StandardError => e
-      raise ActiveModel::MissingAttributeError, "#{e.message} in #{self.class} for #{@object.inspect}"
-    end
   end
 
   # Strategy: Writes a Hash value to JSON, works with String or Symbol keys.
@@ -140,6 +124,30 @@ private
   # Strategy: Obtains the value by calling a method in the serializer.
   def write_value_using_serializer_strategy(writer, key)
     writer.push_value(send(key), key)
+  end
+
+  # Override to detect missing attribute errors locally.
+  if DEV_MODE
+    alias original_write_value_using_method_strategy write_value_using_method_strategy
+    def write_value_using_method_strategy(writer, key)
+      original_write_value_using_method_strategy(writer, key)
+    rescue NoMethodError => error
+      raise error, "Perhaps you meant to call #{ key.inspect } in #{ self.class.name } instead?\nTry using `serializer_attributes :#{ key }` or `attribute def #{ key }`.\n#{ error.message }"
+    end
+
+    alias original_write_value_using_mongoid_strategy write_value_using_mongoid_strategy
+    def write_value_using_mongoid_strategy(writer, key)
+      original_write_value_using_mongoid_strategy(writer, key).tap do
+        # Apply a fake selection when 'only' is not used, so that we allow
+        # read_attribute to fail on typos, renamed, and removed fields.
+        unless @object.__selected_fields
+          @object.__selected_fields = @object.fields.merge(@object.relations.select { |_key, value| value.embedded? }).transform_values { 1 }
+        end
+        @object.read_attribute(key) # Raise a missing attribute exception if it's missing.
+      end
+    rescue StandardError => e
+      raise ActiveModel::MissingAttributeError, "#{e.message} in #{self.class} for #{@object.inspect}"
+    end
   end
 
   class << self
@@ -302,29 +310,19 @@ private
     end
 
     # Public: Specify which attributes are going to be obtained from indexing
-    # a model's `attributes` hash directly, for performance.
-    #
-    # See ./benchmarks/document_benchmark.rb
-    def record_attributes(*method_names, **options)
-      add_attributes(method_names, **options, strategy: :write_value_using_attributes_strategy)
-    end
-
-    # Public: Specify which attributes are going to be obtained from indexing
-    # a mongoid model's `attributes` hash directly, for performance.
+    # a Mongoid model's `attributes` hash directly, for performance.
     #
     # Automatically renames `_id` to `id` for Mongoid models.
     #
     # See ./benchmarks/document_benchmark.rb
     def mongo_attributes(*method_names, **options)
       add_attribute('id', **options, strategy: :write_value_using_id_strategy) if method_names.delete(:id)
-      record_attributes(*method_names, **options)
+      add_attributes(method_names, **options, strategy: :write_value_using_mongoid_strategy)
     end
 
     # Public: Specify which attributes are going to be obtained by calling a
     # method in the object.
-    #
-    # NOTE: Use `record_attributes` instead when possible, as it performs better.
-    def object_attributes(*method_names, **options)
+    def attributes(*method_names, **options)
       add_attributes(method_names, **options, strategy: :write_value_using_method_strategy)
     end
 
@@ -348,8 +346,7 @@ private
     # Backwards Compatibility: Meant only to replace Active Model Serializers,
     # calling a method in the serializer, or using `read_attribute_for_serialization`.
     #
-    # NOTE: Prefer to use `record_attributes`, `object_attributes`, or
-    # `serializer_attributes` explicitly.
+    # NOTE: Prefer to use `attributes` or `serializer_attributes` explicitly.
     def ams_attributes(*method_names, **options)
       method_names.each do |method_name|
         define_method(method_name) { @object.read_attribute_for_serialization(method_name) } unless method_defined?(method_name)

@@ -37,6 +37,7 @@ Learn more about [how this library achieves its performance][design].
 - Declaration syntax similar to Active Model Serializers
 - Reduced memory allocation and [improved performance][benchmarks]
 - Support for `has_one` and `has_many`, compose with `flat_one`
+- Useful development checks to avoid typos and mistakes
 - Integrates nicely with Rails controllers
 - Caching
 
@@ -59,7 +60,7 @@ attributes should be serialized to JSON.
 
 ```ruby
 class AlbumSerializer < Oj::Serializer
-  object_attributes :name, :genres
+  attributes :name, :genres
 
   attribute \
   def release
@@ -216,6 +217,21 @@ to JSON. Each method provides a different strategy to obtain the values to seria
 The internal design is simple and extensible, so creating new strategies requires very little code.
 Please open an issue if you need help 😃
 
+### `attributes`
+
+Obtains the attribute value by calling a method in the object being serialized.
+
+```ruby
+class PlayerSerializer < Oj::Serializer
+  attributes :full_name
+end
+```
+
+Have in mind that unlike Active Model Serializers, it will _not_ take into
+account methods defined in the serializer. Being explicit about where the
+attribute is coming from makes the serializers easier to understand and more
+maintainable.
+
 ### `serializer_attributes`
 
 Obtains the attribute value by calling a method defined in the serializer.
@@ -223,7 +239,7 @@ Obtains the attribute value by calling a method defined in the serializer.
 The serializer's attribute methods can access the object being serialized as `object`,
 or by the serializer name (without the `Serializer` suffix).
 
-You may use `attribute` as the inline syntax for it:
+You may call [`serializer_attributes`](https://github.com/ElMassimo/oj_serializers/blob/master/spec/support/serializers/song_serializer.rb#L13-L15) or use the `attribute` inline syntax:
 
 ```ruby
 class PlayerSerializer < Oj::Serializer
@@ -234,51 +250,15 @@ class PlayerSerializer < Oj::Serializer
 end
 ```
 
-or if you prefer to have all attributes on the top of the class:
+### `mongo_attributes` 🚀
 
-```ruby
-class PlayerSerializer < Oj::Serializer
-  serializer_attributes :high_score
-
-  def high_score
-    player.games.maximum(:score)
-  end
-end
-```
-
-### `object_attributes`
-
-Calls a method defined in the object being serialized.
-
-It's slightly faster than `attributes`, but mostly it serves to document where
-the value is coming from.
-
-```ruby
-class PlayerSerializer < Oj::Serializer
-  object_attributes :full_name
-end
-```
-
-### `record_attributes` 🚀
-
-Reads data directly from the record `attributes`, instead of using getters.
+Reads data directly from the document `attributes`, with the addition that if
+you specify `:id`, it will read serialize `_id` as `id`.
 
 By skipping type casting, coercion, and defaults, it [achieves the best performance][raw_benchmarks].
 
 Although there are some downsides, depending on how consistent your schema is,
 and which kind of consumer the API has, it can be really powerful.
-
-```ruby
-class PlayerSerializer < Oj::Serializer
-  record_attributes :id, :first_name, :last_name
-end
-```
-
-### `mongo_attributes` 🚀
-
-Similar to the `record_attributes` it will read data directly from the document
-`attributes` which is [faster][raw_benchmarks], with the addition that if you
-specify `:id`, it will read serialize `_id` as `id`.
 
 ```ruby
 class AlbumSerializer < Oj::Serializer
@@ -302,7 +282,7 @@ end
 
 Should only be used when migrating from Active Model Serializers, as it's slower and can create confusion.
 
-Instead, use `object_attributes` for model methods, and the inline `attribute` for serializer attributes. Being explicit makes serializers easier to understand, and to maintain.
+Instead, use `attributes` for model methods, and the inline `attribute` for serializer attributes. Being explicit makes serializers easier to understand, and to maintain.
 
 Please refer to the [migration guide] for more information.
 
@@ -318,8 +298,6 @@ end
 PersonSerializer.one('first_name' => 'Mary', :middle_name => 'Jane', :last_name => 'Watson')
 # {"first_name":"Mary","last_name":"Watson"}
 ```
-
-Although it works with records and documents, you should prefer to use `record_attributes` and `mongo_attributes` instead, since they are slightly faster for that use case.
 
 ## Associations DSL 🛠
 
@@ -378,7 +356,7 @@ All the attributes and association methods can take an `if` option to render con
 
 ```ruby
 class AlbumSerializer < Oj::Serializer
-  record_attributes :release_date, if: -> { album.released? }
+  mongo_attributes :release_date, if: -> { album.released? }
 
   has_many :songs, serializer: SongSerializer, if: -> { album.songs.any? }
 
@@ -397,7 +375,7 @@ Use `memo` for memoization and storing temporary information.
 
 ```ruby
 class DownloadSerializer < Oj::Serializer
-  object_attributes :filename, :size
+  attributes :filename, :size
 
   attribute \
   def progress
@@ -448,7 +426,7 @@ a `class` instead of an `instance` of a class. Although it is efficient in terms
 of memory usage, the downside is that you can't use instance methods or local
 memoization, and any mixins must be applied to the class itself.
 
-[`panko-serializer`][panko] also uses `Oj::StringWriter`, but it has the big downside of having to own the entire render tree. Putting a serializer inside a Hash or an Active Model Serializer and serializing that to JSON doesn't work, making a gradual migration harder to achieve.
+[`panko-serializer`][panko] also uses `Oj::StringWriter`, but it has the big downside of having to own the entire render tree. Putting a serializer inside a Hash or an Active Model Serializer and serializing that to JSON doesn't work, making a gradual migration harder to achieve. Also, it's optimized for Active Record but I needed good Mongoid support.
 
 `Oj::Serializer` combines some of these ideas, by using instances, but reusing them to avoid object allocations. Serializing 10,000 items instantiates a single serializer.
 
@@ -460,7 +438,7 @@ Even though most of the examples above use a single-line style to be succint, I 
 
 ```ruby
 class AlbumSerializer < Oj::Serializer
-  object_attributes(
+  attributes(
     :genres,
     :name,
     :release_date,

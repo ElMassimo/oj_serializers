@@ -11,8 +11,8 @@ RSpec.describe 'Document Accessors', category: :benchmark do
       x.config(time: 2, warmup: 1)
       x.report('album.name') { album.name }
       x.report("album['name']") { album['name'] }
-      x.report('album.full_name') { album.full_name }
       x.report("album.attributes['name']") { album.attributes['name'] }
+      x.report("album.read_attribute('name')") { album.read_attribute('name') }
       x.compare!
     end
   end

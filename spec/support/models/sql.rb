@@ -29,6 +29,18 @@ end
 
 class Game < ActiveRecord::Base
   has_many :players
+
+  def self.example
+    new(
+      name: 'Tetris',
+      high_score: 1500,
+      score: 3165,
+      players: [
+        Player.new(first_name: 'Alexey', last_name: 'Pajitnov'),
+        Player.new(first_name: 'Vadim', last_name: 'Gerasimov'),
+      ],
+    )
+  end
 end
 
 class Player < ActiveRecord::Base

@@ -8,7 +8,7 @@ class AlbumSerializer < Oj::Serializer
     :name
   )
 
-  object_attributes(
+  attributes(
     :genres
   )
 
@@ -17,5 +17,5 @@ class AlbumSerializer < Oj::Serializer
   attribute \
   def release
     album.release_date.strftime('%B %d, %Y')
-  end
+  end, if: -> { album.released? }
 end

@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+ENV['RACK_ENV'] ||= 'development'
+
 require 'bundler/setup'
 require 'oj_serializers'
 require 'pry-byebug'

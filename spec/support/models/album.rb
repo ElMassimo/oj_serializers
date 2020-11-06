@@ -15,10 +15,6 @@ class Album
     release_date?
   end
 
-  def full_name
-    attributes['name']
-  end
-
   def self.abraxas
     new(
       name: 'Abraxas',

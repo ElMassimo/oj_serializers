@@ -15,7 +15,7 @@
 [trailing_commas]: https://maximomussini.com/posts/trailing-commas/
 
 The DSL of `oj_serializers` is meant to be similar to the one provided by `active_model_serializers` to make the migration process simple,
-though the goal is not to be a drop-in replacement. 
+though the goal is not to be a drop-in replacement.
 
 ## Rendering 🛠
 
@@ -44,6 +44,8 @@ render json: {
 
 ### Attributes
 
+Have in mind that unlike in Active Model Serializers, `attributes` in `Oj::Serializer` will _not_ take into account methods defined in the serializer.
+
 Specially in the beginning, you can replace `attributes` with `ams_attributes` to preserve the same behavior.
 
 ```ruby
@@ -66,21 +68,39 @@ end
 class AlbumSerializer < Oj::Serializer
   ams_attributes :name, :release
 
+  # The serializer class must be explicitly provided.
   has_many :songs, serializer: SongSerializer
 
   def release
     album.release_date.strftime('%B %d, %Y')
   end
 
+  # This AMS magic still works.
   def include_release?
     album.released?
   end
 end
 ```
 
-Notice that the library honors any `include` methods you have defined, and that it requires a serializer to be specified for associations.
+Once your serializer is working as expected, you can further refactor it to be more performant by using `attributes` and `serializer_attributes`.
 
-Have in mind that this library provides [faster serialization methods][readme] such as `record_attributes`.
+Being explicit about where the attributes are coming from makes the serializers easier to understand and more maintainable.
+
+```ruby
+class AlbumSerializer < Oj::Serializer
+  attributes :name
+
+  has_many :songs, serializer: SongSerializer
+
+  attribute \
+  def release
+    album.release_date.strftime('%B %d, %Y')
+  end, if: -> { album.released? }
+
+  # NOTE: This shorthand syntax might not be very palatable at first, but having
+  # the entire definition in one place makes it a lot easier to follow.
+end
+```
 
 ## Migrate gradually, one at a time
 
