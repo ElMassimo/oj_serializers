@@ -54,6 +54,10 @@ class AlbumSerializer < ActiveModel::Serializer
 
   has_many :songs
 
+  def album
+    object
+  end
+
   def release
     album.release_date.strftime('%B %d, %Y')
   end
@@ -96,11 +100,12 @@ class AlbumSerializer < Oj::Serializer
   def release
     album.release_date.strftime('%B %d, %Y')
   end, if: -> { album.released? }
-
-  # NOTE: This shorthand syntax might not be very palatable at first, but having
-  # the entire definition in one place makes it a lot easier to follow.
 end
 ```
+
+The shorthand syntax for serializer attributes might not be very palatable at
+first, but having the entire definition in one place makes it a lot easier to
+follow, specially in large serializers.
 
 ## Migrate gradually, one at a time
 

@@ -2,6 +2,9 @@
 
 ENV['RACK_ENV'] ||= 'test'
 
+require 'simplecov'
+SimpleCov.start { add_filter '/spec/' }
+
 require 'bundler/setup'
 require 'oj_serializers'
 require 'pry-byebug'
@@ -15,6 +18,17 @@ class BSON::ObjectId
   end
 end
 
+module JsonHelpers
+  def parse_json(json = response.body)
+    item = JSON.parse(json)
+    item.is_a?(Array) ? item.map(&:deep_symbolize_keys) : item.deep_symbolize_keys!
+  end
+
+  def expect_parsed_json(json = response.body)
+    expect(parse_json(json))
+  end
+end
+
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = '.rspec_status'
@@ -25,4 +39,6 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+
+  config.include JsonHelpers
 end

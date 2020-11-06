@@ -15,6 +15,9 @@ Style/TrailingCommaInArrayLiteral:
 Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: comma
 
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+
 Style/Lambda:
   EnforcedStyle: literal
 
