@@ -15,4 +15,13 @@ class AlbumSerializer < Oj::Serializer
   def release
     album.release_date.strftime('%B %d, %Y')
   end, if: -> { album.released? }
+
+  attribute \
+  def special
+    special?
+  end, if: -> { special? }
+
+  def special?
+    memo.fetch(:special) { options[:special] }
+  end
 end

@@ -9,7 +9,7 @@ require 'support/serializers/legacy_serializers'
 class AlbumsController < ApplicationController
   def show
     album = Album.abraxas
-    render json: album, serializer: AlbumSerializer
+    render json: album, serializer: AlbumSerializer, special: true
   end
 
   def list
@@ -19,7 +19,7 @@ class AlbumsController < ApplicationController
 
   def legacy_show
     album = Album.abraxas
-    render json: album, serializer: LegacyAlbumSerializer
+    render json: album, serializer: LegacyAlbumSerializer, special: true
   end
 
   def legacy_list

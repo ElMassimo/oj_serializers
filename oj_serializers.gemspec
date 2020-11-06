@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Maximo Mussini']
   spec.email         = ['maximomussini@gmail.com']
 
-  spec.summary       = 'A faster JSON serializer for Ruby Objects in Rails. Easily migrate away from Active Model Serializers.'
+  spec.summary       = 'A lighter JSON serializer for Ruby Objects in Rails. Easily migrate away from Active Model Serializers.'
   spec.description   = 'oj_serializers leverages the performance of the oj JSON serialization library, and minimizes object allocations, all while provding a similar API to Active Model Serializers.'
   spec.homepage      = 'https://github.com/ElMassimo/oj_serializers'
   spec.license       = 'MIT'

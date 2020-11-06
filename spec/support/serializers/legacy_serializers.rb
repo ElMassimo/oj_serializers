@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_model_serializers'
+require 'oj_serializers/compat'
 
 # https://github.com/rails-api/active_model_serializers/blob/0-8-stable/README.md#1-disable-root-globally-for-all-or-per-class
 ActiveSupport.on_load(:active_model_serializers) do
@@ -28,6 +29,7 @@ class LegacyAlbumSerializer < ActiveModel::Serializer
     :name,
     :genres,
     :release,
+    :special,
   )
 
   has_many :songs, serializer: LegacySongSerializer
@@ -36,7 +38,7 @@ class LegacyAlbumSerializer < ActiveModel::Serializer
     object.release_date.strftime('%B %d, %Y')
   end
 
-  def include_release?
-    object.released?
+  def special
+    instance_options[:special] # Ensure the railtie does not affect the usual setup for AMS.
   end
 end

@@ -2,6 +2,8 @@
 
 require 'benchmark_helper'
 
+require 'rails'
+require 'active_support/json'
 require 'oj_serializers/compat'
 require 'support/serializers/option_serializer'
 require 'support/models/album'

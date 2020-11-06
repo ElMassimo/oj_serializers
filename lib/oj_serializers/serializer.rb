@@ -5,6 +5,8 @@ require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/string/inflections'
 
 require 'oj'
+require 'oj_serializers/memo'
+require 'oj_serializers/json_value'
 
 # Public: Implementation of an "ActiveModelSerializer"-like DSL, but with a
 # design that allows replacing the internal object, which greatly reduces object
@@ -94,7 +96,7 @@ protected
 
   # Internal: An internal cache that can be used for temporary memoization.
   def memo
-    defined?(@memo) ? @memo : @memo = {}
+    defined?(@memo) ? @memo : @memo = OjSerializers::Memo.new
   end
 
 private
@@ -274,7 +276,7 @@ private
           non_cached_write_one(writer, item, options)
           writer.to_json
         end.values
-        external_writer.push_json("#{JsonValue.array(cached_items)}\n") # Oj.dump expects a new line terminator.
+        external_writer.push_json("#{OjSerializers::JsonValue.array(cached_items)}\n") # Oj.dump expects a new line terminator.
       end
     end
     alias cached_with_key cached

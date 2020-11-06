@@ -19,12 +19,13 @@ RSpec.describe AlbumsController, type: :controller do
     get :show
     album = parse_json
     songs = album[:songs]
-    expect(album).to eq albums.first
     expect(album).to include(
       name: 'Abraxas',
       release: 'September 23, 1970',
       genres: ['Pyschodelic Rock', 'Blues Rock', 'Jazz Fusion', 'Latin Rock'],
+      special: true,
     )
+    expect(album.except(:special)).to eq albums.first
     expect(songs.size).to eq 9
     expect(songs.second).to eq(
       track: 2,
@@ -34,7 +35,7 @@ RSpec.describe AlbumsController, type: :controller do
 
     get :legacy_list
     legacy_albums = parse_json[:albums]
-    expect(legacy_albums).to eq albums
+    expect(legacy_albums.map { |album| album.except(:special) }).to eq albums
 
     get :legacy_show
     legacy_album = parse_json

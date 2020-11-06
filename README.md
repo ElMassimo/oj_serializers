@@ -10,7 +10,7 @@ Oj Serializers
 </p>
 </h1>
 
-Faster JSON serializers for Ruby, built on top of the powerful [`oj`][oj] library.
+JSON serializers for Ruby, built on top of the powerful [`oj`][oj] library.
 
 [oj]: https://github.com/ohler55/oj
 [ams]: https://github.com/rails-api/active_model_serializers
@@ -428,7 +428,7 @@ memoization, and any mixins must be applied to the class itself.
 
 [`panko-serializer`][panko] also uses `Oj::StringWriter`, but it has the big downside of having to own the entire render tree. Putting a serializer inside a Hash or an Active Model Serializer and serializing that to JSON doesn't work, making a gradual migration harder to achieve. Also, it's optimized for Active Record but I needed good Mongoid support.
 
-`Oj::Serializer` combines some of these ideas, by using instances, but reusing them to avoid object allocations. Serializing 10,000 items instantiates a single serializer.
+`Oj::Serializer` combines some of these ideas, by using instances, but reusing them to avoid object allocations. Serializing 10,000 items instantiates a single serializer. Unlike `panko-serializer`, it doesn't suffer from [double encoding problems](https://panko.dev/docs/response-bag) so it's easier to use.
 
 As a result, migrating from `active_model_serializers` is relatively straightforward because instance methods, inheritance, and mixins work as usual.
 
