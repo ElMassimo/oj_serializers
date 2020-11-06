@@ -5,9 +5,6 @@ require_relative 'song_serializer'
 class AlbumSerializer < Oj::Serializer
   mongo_attributes(
     :id,
-  )
-
-  raw_attributes(
     :name
   )
 

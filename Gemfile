@@ -16,3 +16,4 @@ gem 'activerecord', require: false
 gem 'benchmark-ips', require: false
 gem 'mongoid', require: false
 gem 'memory_profiler', require: false
+gem 'sqlite3', require: false

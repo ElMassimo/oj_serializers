@@ -2,7 +2,7 @@
 
 require 'oj_serializers/json_string_encoder'
 
-# Internal: Allows to efficiently use `render json:` with Oj::Serializer.
+# Internal: Allows to pass Oj serializers as options in `render`.
 module OjSerializers::ControllerSerialization
   extend ActiveSupport::Concern
   include ActionController::Renderers

@@ -5,7 +5,6 @@ require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/string/inflections'
 
 require 'oj'
-require 'oj_serializers/instance_cache'
 
 # Public: Implementation of an "ActiveModelSerializer"-like DSL, but with a
 # design that allows replacing the internal object, which greatly reduces object
@@ -18,12 +17,12 @@ require 'oj_serializers/instance_cache'
 class OjSerializers::Serializer
   # Public: Used to validate incorrect memoization during development. Users of
   # this library might add additional options as needed.
-  ALLOWED_INSTANCE_VARIABLES = %w[cache object].freeze
+  ALLOWED_INSTANCE_VARIABLES = %w[memo object].freeze
 
   CACHE = if defined?(Rails)
-            Rails.cache
-          else
-            defined?(ActiveSupport::Cache::MemoryStore) ? ActiveSupport::Cache::MemoryStore.new : {}
+    Rails.cache
+  else
+    defined?(ActiveSupport::Cache::MemoryStore) ? ActiveSupport::Cache::MemoryStore.new : {}
   end
 
   # Internal: The environment the app is currently running on.
@@ -45,7 +44,7 @@ class OjSerializers::Serializer
   # NOTE: Binds this instance to the specified object and options and writes
   # to json using the provided writer.
   def write_flat(writer, item)
-    @cache.clear if defined?(@cache)
+    @memo.clear if defined?(@memo)
     @object = item
     write_to_json(writer)
   end
@@ -56,7 +55,7 @@ class OjSerializers::Serializer
       def write_flat(writer, item)
         if instance_values.keys.any? { |key| !ALLOWED_INSTANCE_VARIABLES.include?(key) }
           bad_keys = instance_values.keys.reject { |key| ALLOWED_INSTANCE_VARIABLES.include?(key) }
-          raise ArgumentError, "Serializer instances are reused so they must be stateless. Use `cache.fetch` for memoization purposes instead. Bad keys: #{bad_keys.join(',')}"
+          raise ArgumentError, "Serializer instances are reused so they must be stateless. Use `memo.fetch` for memoization purposes instead. Bad keys: #{bad_keys.join(',')}"
         end
         super
       end
@@ -94,8 +93,8 @@ class OjSerializers::Serializer
 protected
 
   # Internal: An internal cache that can be used for temporary memoization.
-  def cache
-    defined?(@cache) ? @cache : @cache = {}
+  def memo
+    defined?(@memo) ? @memo : @memo = {}
   end
 
 private
@@ -107,7 +106,8 @@ private
     writer.push_value(@object.attributes['_id'], 'id') unless @object.new_record?
   end
 
-  # Strategy: Writes a Mongoid attribute to JSON, this is the fastest strategy.
+  # Strategy: Writes an ActiveRecord or Mongoid attribute to JSON, this is the
+  # fastest strategy.
   def write_value_using_attributes_strategy(writer, key)
     writer.push_value(@object.attributes[key], key)
   end
@@ -297,14 +297,15 @@ private
     # Public: Specify which attributes are going to be obtained from indexing
     # the object.
     def hash_attributes(*method_names, **options)
-      add_attributes(method_names, **options, strategy: :write_value_using_hash_strategy)
+      options = { **options, strategy: :write_value_using_hash_strategy }
+      method_names.each { |name| _attributes[name] = options }
     end
 
     # Public: Specify which attributes are going to be obtained from indexing
     # a model's `attributes` hash directly, for performance.
     #
     # See ./benchmarks/document_benchmark.rb
-    def raw_attributes(*method_names, **options)
+    def record_attributes(*method_names, **options)
       add_attributes(method_names, **options, strategy: :write_value_using_attributes_strategy)
     end
 
@@ -316,13 +317,13 @@ private
     # See ./benchmarks/document_benchmark.rb
     def mongo_attributes(*method_names, **options)
       add_attribute('id', **options, strategy: :write_value_using_id_strategy) if method_names.delete(:id)
-      raw_attributes(*method_names, **options)
+      record_attributes(*method_names, **options)
     end
 
     # Public: Specify which attributes are going to be obtained by calling a
     # method in the object.
     #
-    # NOTE: Use `raw_attributes` instead when possible, as it performs better.
+    # NOTE: Use `record_attributes` instead when possible, as it performs better.
     def object_attributes(*method_names, **options)
       add_attributes(method_names, **options, strategy: :write_value_using_method_strategy)
     end
@@ -335,18 +336,6 @@ private
       add_attributes(method_names, **options, strategy: :write_value_using_serializer_strategy)
     end
 
-    # Backwards Compatibility: Works similarly to the way that Active Model
-    # Serializers do, calling a method in the model or in the serializer.
-    #
-    # NOTE: Prefer to use `raw_attributes`, `object_attributes`, or
-    # `serializer_attributes` explicitly.
-    def attributes(*method_names, **options)
-      method_names.each do |method_name|
-        define_method(method_name) { @object.send(method_name) } unless method_defined?(method_name)
-      end
-      add_attributes(method_names, **options, strategy: :write_value_using_serializer_strategy)
-    end
-
     # Syntax Sugar: Allows to use it before a method name.
     #
     # Example:
@@ -354,7 +343,19 @@ private
     #   def full_name
     #     "#{ first_name } #{ last_name }"
     #   end
-    alias attribute attributes
+    alias attribute serializer_attributes
+
+    # Backwards Compatibility: Meant only to replace Active Model Serializers,
+    # calling a method in the serializer, or using `read_attribute_for_serialization`.
+    #
+    # NOTE: Prefer to use `record_attributes`, `object_attributes`, or
+    # `serializer_attributes` explicitly.
+    def ams_attributes(*method_names, **options)
+      method_names.each do |method_name|
+        define_method(method_name) { @object.read_attribute_for_serialization(method_name) } unless method_defined?(method_name)
+      end
+      add_attributes(method_names, **options, strategy: :write_value_using_serializer_strategy)
+    end
 
   private
 
@@ -437,7 +438,7 @@ private
     # For that reason, serializers must be completely stateless (or use global
     # state).
     def instance
-      OjSerializers::InstanceCache.fetch(instance_key) { new }
+      Thread.current[instance_key] ||= new
     end
 
     # Internal: Cache key to set a thread-local instance.

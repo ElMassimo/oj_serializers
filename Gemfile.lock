@@ -2,7 +2,6 @@ PATH
   remote: .
   specs:
     oj_serializers (1.0.0)
-      actionpack (>= 4.0)
       oj (>= 3.8.0)
 
 GEM
@@ -49,8 +48,6 @@ GEM
     crass (1.0.6)
     diff-lcs (1.4.4)
     erubi (1.9.0)
-    faker (2.14.0)
-      i18n (>= 1.6, < 2)
     i18n (1.8.5)
       concurrent-ruby (~> 1.0)
     jsonapi-renderer (0.2.2)
@@ -121,6 +118,7 @@ GEM
     rubocop-ast (0.1.0)
       parser (>= 2.7.0.1)
     ruby-progressbar (1.10.1)
+    sqlite3 (1.4.2)
     thor (1.0.1)
     thread_safe (0.3.6)
     tzinfo (1.2.7)
@@ -132,10 +130,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  actionpack (>= 4.0)
   active_model_serializers (~> 0.8)
   activerecord
   benchmark-ips
-  faker
   memory_profiler
   mongoid
   oj_serializers!
@@ -144,6 +142,7 @@ DEPENDENCIES
   rake (~> 12.0)
   rspec (~> 3.0)
   rubocop
+  sqlite3
 
 BUNDLED WITH
    2.1.4

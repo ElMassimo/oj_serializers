@@ -11,6 +11,10 @@ class Album
 
   embeds_many :songs
 
+  def released?
+    release_date?
+  end
+
   def full_name
     attributes['name']
   end

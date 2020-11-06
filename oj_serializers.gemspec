@@ -25,6 +25,6 @@ Gem::Specification.new do |spec|
   rails_versions = '>= 4.0'
 
   spec.add_dependency 'oj', '>= 3.8.0'
-  spec.add_runtime_dependency 'actionpack', rails_versions
+  spec.add_development_dependency 'actionpack', rails_versions
   spec.add_development_dependency 'railties', rails_versions
 end
