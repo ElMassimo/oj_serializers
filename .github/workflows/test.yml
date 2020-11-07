@@ -1,0 +1,44 @@
+env:
+  RUBY_VERSION: 2.7
+
+name: build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: RSpec & Rubocop
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+      - uses: actions/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+      - name: Setup Code Climate test-reporter
+        run: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter before-build
+      - name: Install dependencies
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+      - name: Run tests
+        run: bin/rspec
+      - name: Lint Ruby code
+        run: bin/rubocop
+      - name: Upload code coverage to Code Climate
+        run: |
+          export GIT_BRANCH="${GITHUB_REF/refs\/heads\//}"
+          ./cc-test-reporter after-build -r ${{secrets.CC_TEST_REPORTER_ID}}
+      - name: Upload coverage results to GitHub
+        uses: actions/upload-artifact@main
+        with:
+          name: coverage-report
+          path: coverage
