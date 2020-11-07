@@ -1,7 +1,7 @@
 <h1 align="center">
 Oj Serializers
 <p align="center">
-<a href="https://travis-ci.org/ElMassimo/oj_serializers"><img alt="Build Status" src="https://travis-ci.org/ElMassimo/oj_serializers.svg"/></a>
+<a href="https://github.com/ElMassimo/oj_serializers/actions"><img alt="Build Status" src="https://github.com/ElMassimo/oj_serializers/workflows/build/badge.svg"/></a>
 <a href="https://inch-ci.org/github/ElMassimo/oj_serializers"><img alt="Inline docs" src="https://inch-ci.org/github/ElMassimo/oj_serializers.svg"/></a>
 <a href="https://codeclimate.com/github/ElMassimo/oj_serializers"><img alt="Maintainability" src="https://codeclimate.com/github/ElMassimo/oj_serializers/badges/gpa.svg"/></a>
 <a href="https://codeclimate.com/github/ElMassimo/oj_serializers"><img alt="Test Coverage" src="https://codeclimate.com/github/ElMassimo/oj_serializers/badges/coverage.svg"/></a>
