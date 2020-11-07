@@ -10,10 +10,10 @@ module OjSerializers::JsonStringEncoder
     #   render json: items, each_serializer: ItemSerializer
     #   render json: item, serializer: ItemSerializer
     #
-    # Returns a JSON string.
-    #
     # NOTE: Unlike the default encoder, this one will use the `root` option
     # regardless of whether a serializer is specified or not.
+    #
+    # Returns a JSON string.
     def encode_to_json(object, root: nil, serializer: nil, each_serializer: nil, **extras)
       # NOTE: Serializers may override `new_json_writer` to modify the behavior.
       writer = (serializer || each_serializer || OjSerializers::Serializer).send(:new_json_writer)
@@ -40,9 +40,9 @@ module OjSerializers::JsonStringEncoder
       writer.to_json
     end
 
-    # Allows to detect misusage of the options during development.
     if OjSerializers::Serializer::DEV_MODE
       alias actual_encode_to_json encode_to_json
+      # Internal: Allows to detect misusage of the options during development.
       def encode_to_json(object, root: nil, serializer: nil, each_serializer: nil, **extras)
         if serializer && serializer < OjSerializers::Serializer
           raise ArgumentError, 'You must use `each_serializer` when serializing collections' if object.respond_to?(:each)

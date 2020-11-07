@@ -16,7 +16,7 @@ end
 
 RSpec.describe 'Caching', type: :serializer do
   let!(:album) { Album.abraxas }
-  let!(:other_album) { Album.new(name: 'Amigos', release_date: Date.new(1976, 03, 26)) }
+  let!(:other_album) { Album.new(name: 'Amigos', release_date: Date.new(1976, 3, 26)) }
   let!(:albums) { [album, other_album] }
 
   it 'should reuse the cache effectively' do

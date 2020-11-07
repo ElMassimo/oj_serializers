@@ -1,10 +1,10 @@
 <h1 align="center">
 Oj Serializers
 <p align="center">
-<!-- <a href="https://travis-ci.org/ElMassimo/oj_serializers"><img alt="Build Status" src="https://travis-ci.org/ElMassimo/oj_serializers.svg"/></a>
-<a href="http://inch-ci.org/github/ElMassimo/oj_serializers"><img alt="Inline docs" src="http://inch-ci.org/github/ElMassimo/oj_serializers.svg"/></a>
+<a href="https://travis-ci.org/ElMassimo/oj_serializers"><img alt="Build Status" src="https://travis-ci.org/ElMassimo/oj_serializers.svg"/></a>
+<a href="https://inch-ci.org/github/ElMassimo/oj_serializers"><img alt="Inline docs" src="https://inch-ci.org/github/ElMassimo/oj_serializers.svg"/></a>
 <a href="https://codeclimate.com/github/ElMassimo/oj_serializers"><img alt="Maintainability" src="https://codeclimate.com/github/ElMassimo/oj_serializers/badges/gpa.svg"/></a>
-<a href="https://codeclimate.com/github/ElMassimo/oj_serializers"><img alt="Test Coverage" src="https://codeclimate.com/github/ElMassimo/oj_serializers/badges/coverage.svg"/></a> -->
+<a href="https://codeclimate.com/github/ElMassimo/oj_serializers"><img alt="Test Coverage" src="https://codeclimate.com/github/ElMassimo/oj_serializers/badges/coverage.svg"/></a>
 <a href="https://rubygems.org/gems/oj_serializers"><img alt="Gem Version" src="https://img.shields.io/gem/v/oj_serializers.svg?colorB=e9573f"/></a>
 <a href="https://github.com/ElMassimo/oj_serializers/blob/master/LICENSE.txt"><img alt="License" src="https://img.shields.io/badge/license-MIT-428F7E.svg"/></a>
 </p>
@@ -19,6 +19,7 @@ JSON serializers for Ruby, built on top of the powerful [`oj`][oj] library.
 [panko]: https://github.com/panko-serializer/panko_serializer
 [benchmarks]: https://github.com/ElMassimo/oj_serializers/tree/master/benchmarks
 [raw_benchmarks]: https://github.com/ElMassimo/oj_serializers/blob/master/benchmarks/document_benchmark.rb
+[sugar]: https://github.com/ElMassimo/oj_serializers/blob/master/lib/oj_serializers/sugar.rb#L14
 [migration guide]: https://github.com/ElMassimo/oj_serializers/blob/master/MIGRATION_GUIDE.md
 [design]: https://github.com/ElMassimo/oj_serializers#design-
 [raw_json]: https://github.com/ohler55/oj/issues/542
@@ -174,7 +175,7 @@ class AlbumsController < ApplicationController
 end
 ```
 
-If you are using Rails you can also use something closer to Active Model Serializers by adding `sugar`:
+If you are using Rails you can also use something closer to Active Model Serializers by adding [`sugar`][sugar]:
 
 ```ruby
 require 'oj_serializers/sugar'

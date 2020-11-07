@@ -9,6 +9,9 @@ Lint/AssignmentInCondition:
 Layout/FirstArgumentIndentation:
   Enabled: false
 
+Style/Documentation:
+  Enabled: false
+
 Style/TrailingCommaInArrayLiteral:
   EnforcedStyleForMultiline: comma
 

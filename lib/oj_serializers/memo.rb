@@ -6,10 +6,14 @@ class OjSerializers::Memo
     @cache = {}
   end
 
+  # Internal: Allows to clear the cache when binding the serializer to a
+  # different object.
   def clear
     @cache.clear
   end
 
+  # Public: Allows to use a simple memoization pattern that also works for
+  # falsey values.
   def fetch(key)
     @cache.fetch(key) { @cache[key] = yield }
   end

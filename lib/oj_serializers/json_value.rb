@@ -5,13 +5,16 @@
 # NOTE: Oj's raw_json option means there's no performance overhead, as it would
 # occur with the previous alternative of parsing the JSON string.
 class OjSerializers::JsonValue
-  # Helper: Expects an Array of JSON-encoded strings and wraps them in a JSON array.
-  def self.array(json_rows)
-    new("[#{json_rows.join(',')}]")
-  end
-
+  # Public: Expects json to be a JSON-encoded string.
   def initialize(json)
     @json = json
+  end
+
+  # Public: Expects an Array of JSON-encoded strings and wraps them in a JSON array.
+  #
+  # Returns a JsonValue representing a JSON-encoded array.
+  def self.array(json_rows)
+    new("[#{json_rows.join(',')}]")
   end
 
   # Public: Return the internal json when using string interpolation.
