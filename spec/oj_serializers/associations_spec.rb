@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'support/models/album'
+require 'support/models/sql'
 require 'support/serializers/album_serializer'
 
 class CachedAlbumSerializer < AlbumSerializer

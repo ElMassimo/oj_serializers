@@ -38,7 +38,7 @@ RSpec.describe AlbumSerializer, category: :benchmark do
           Oj.dump AlbumSerializer.many(albums)
         end
         x.report('active_model_serializers') do
-          Oj.dump albums.map { |album| LegacyAlbumSerializer.new(album) }
+          Oj.dump(albums.map { |album| LegacyAlbumSerializer.new(album) })
         end
         x.compare!
       end

@@ -7,7 +7,7 @@ module OptionSerializer
   class AMS < ActiveModel::Serializer
     attributes(
       :label,
-      :value
+      :value,
     )
 
     def label
@@ -48,8 +48,8 @@ module OptionSerializer
   end
 
   def self.map_models(models)
-    models.map { |model|
+    models.map do |model|
       { label: model.attributes['name'], value: model.attributes['_id'] }
-    }
+    end
   end
 end

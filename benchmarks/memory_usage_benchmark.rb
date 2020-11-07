@@ -26,12 +26,10 @@ RSpec.describe 'Memory Usage' do
     oj_report = MemoryProfiler.report { Oj.dump AlbumSerializer.many(albums) }
     bytes_allocated_by_oj = oj_report.allocated_memory_by_class.sum { |data| data[:count] }
 
-    ams_report = MemoryProfiler.report { Oj.dump albums.map { |album| LegacyAlbumSerializer.new(album) } }
+    ams_report = MemoryProfiler.report { Oj.dump(albums.map { |album| LegacyAlbumSerializer.new(album) }) }
     bytes_allocated_by_ams = ams_report.allocated_memory_by_class.sum { |data| data[:count] }
 
     expect(bytes_allocated_by_oj).to be < bytes_allocated_by_ams
     expect(bytes_allocated_by_oj / bytes_allocated_by_ams.to_f).to be < 0.25
-
-    binding.pry
   end
 end

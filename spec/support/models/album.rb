@@ -30,7 +30,7 @@ class Album
         Song.new(track: 7, name: 'Samba pa ti', composer: 'Santana'),
         Song.new(track: 8, name: "Hope You're Feeling Better", composer: 'Rolie'),
         Song.new(track: 9, name: 'El Nicoya', composer: 'Areas'),
-      ]
+      ],
     )
   end
 end

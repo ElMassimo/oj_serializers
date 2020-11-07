@@ -51,7 +51,7 @@ RSpec.describe OjSerializers::JsonStringEncoder, type: :serializer do
       expect_encoded_json(complex_array, root: :mixed).to eq({ mixed: [{ complex_array: [hash, hash] }] }.to_json)
 
       expect(complex.as_json.to_json).to eq([{ complex: hash }].to_json)
-      expect("#{ OjSerializers::JsonValue.new(json_string) }").to eq json_string
+      expect(OjSerializers::JsonValue.new(json_string).to_s).to eq json_string
     end
   end
 
@@ -61,85 +61,85 @@ RSpec.describe OjSerializers::JsonStringEncoder, type: :serializer do
       require 'support/serializers/album_serializer'
     end
     let(:album) { Album.abraxas }
-    let(:album_hash) {
+    let(:album_hash) do
       {
-        "name": "Abraxas",
+        "name": 'Abraxas',
         "genres": [
-          "Pyschodelic Rock",
-          "Blues Rock",
-          "Jazz Fusion",
-          "Latin Rock"
+          'Pyschodelic Rock',
+          'Blues Rock',
+          'Jazz Fusion',
+          'Latin Rock',
         ],
-        "release": "September 23, 1970",
+        "release": 'September 23, 1970',
         "songs": [
           {
             "track": 1,
-            "name": "Sing Winds, Crying Beasts",
+            "name": 'Sing Winds, Crying Beasts',
             "composers": [
-              "Michael Carabello"
-            ]
+              'Michael Carabello',
+            ],
           },
           {
             "track": 2,
-            "name": "Black Magic Woman / Gypsy Queen",
+            "name": 'Black Magic Woman / Gypsy Queen',
             "composers": [
-              "Peter Green",
-              "Gábor Szabó"
-            ]
+              'Peter Green',
+              'Gábor Szabó',
+            ],
           },
           {
             "track": 3,
-            "name": "Oye como va",
+            "name": 'Oye como va',
             "composers": [
-              "Tito Puente"
-            ]
+              'Tito Puente',
+            ],
           },
           {
             "track": 4,
-            "name": "Incident at Neshabur",
+            "name": 'Incident at Neshabur',
             "composers": [
-              "Alberto Gianquinto",
-              "Carlos Santana"
-            ]
+              'Alberto Gianquinto',
+              'Carlos Santana',
+            ],
           },
           {
             "track": 5,
-            "name": "Se acabó",
+            "name": 'Se acabó',
             "composers": [
-              "José Areas"
-            ]
+              'José Areas',
+            ],
           },
           {
             "track": 6,
             "name": "Mother's Daughter",
             "composers": [
-              "Gregg Rolie"
-            ]
+              'Gregg Rolie',
+            ],
           },
           {
             "track": 7,
-            "name": "Samba pa ti",
+            "name": 'Samba pa ti',
             "composers": [
-              "Santana"
-            ]
+              'Santana',
+            ],
           },
           {
             "track": 8,
             "name": "Hope You're Feeling Better",
             "composers": [
-              "Rolie"
-            ]
+              'Rolie',
+            ],
           },
           {
             "track": 9,
-            "name": "El Nicoya",
+            "name": 'El Nicoya',
             "composers": [
-              "Areas"
-            ]
-          }
-        ]
+              'Areas',
+            ],
+          },
+        ],
       }
-    }
+    end
 
     it 'should encode using old serializers if provided' do
       require 'support/serializers/active_model_serializer'

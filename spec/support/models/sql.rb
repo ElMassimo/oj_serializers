@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_record"
-require "sqlite3"
+require 'active_record'
+require 'sqlite3'
 
 # Change the following to reflect your database settings
 ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: ':memory:')
@@ -16,6 +16,7 @@ ActiveRecord::Schema.define do
     t.integer :score, default: 0
 
     t.references :players
+    t.references :best_player
   end
 
   create_table :players, force: true do |t|
@@ -28,15 +29,19 @@ ActiveRecord::Schema.define do
 end
 
 class Game < ActiveRecord::Base
+  belongs_to :best_player
+
   has_many :players
 
   def self.example
+    best_player = Player.new(first_name: 'Alexey', last_name: 'Pajitnov')
     new(
       name: 'Tetris',
       high_score: 1500,
       score: 3165,
+      best_player: best_player,
       players: [
-        Player.new(first_name: 'Alexey', last_name: 'Pajitnov'),
+        best_player,
         Player.new(first_name: 'Vadim', last_name: 'Gerasimov'),
       ],
     )
@@ -47,6 +52,6 @@ class Player < ActiveRecord::Base
   has_many :games
 
   def full_name
-    "#{ first_name } #{ last_name }"
+    "#{first_name} #{last_name}"
   end
 end

@@ -7,7 +7,7 @@ class SongSerializer < Oj::Serializer
   )
 
   attributes(
-    :name
+    :name,
   )
 
   serializer_attributes(

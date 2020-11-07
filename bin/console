@@ -7,8 +7,8 @@ require 'bundler/setup'
 require 'oj_serializers'
 require 'pry-byebug'
 
-$:.unshift Pathname.new(__dir__).join('../spec')
+$LOAD_PATH.unshift Pathname.new(__dir__).join('../spec')
 
-Dir[Pathname.new(__dir__).join('../spec/support/**/*.rb')].each { |f| require f }
+Dir[Pathname.new(__dir__).join('../spec/support/**/*.rb')].sort.each { |f| require f }
 
 Pry.start

@@ -22,7 +22,7 @@ class OjSerializers::Serializer
   ALLOWED_INSTANCE_VARIABLES = %w[memo object].freeze
 
   CACHE = (defined?(Rails) && Rails.cache) ||
-    (defined?(ActiveSupport::Cache::MemoryStore) ? ActiveSupport::Cache::MemoryStore.new : OjSerializers::Memo.new)
+          (defined?(ActiveSupport::Cache::MemoryStore) ? ActiveSupport::Cache::MemoryStore.new : OjSerializers::Memo.new)
 
   # Internal: The environment the app is currently running on.
   environment = ENV['RACK_ENV'] || ENV['RAILS_ENV'] || 'production'
@@ -130,8 +130,8 @@ private
     alias original_write_value_using_method_strategy write_value_using_method_strategy
     def write_value_using_method_strategy(writer, key)
       original_write_value_using_method_strategy(writer, key)
-    rescue NoMethodError => error
-      raise error, "Perhaps you meant to call #{ key.inspect } in #{ self.class.name } instead?\nTry using `serializer_attributes :#{ key }` or `attribute def #{ key }`.\n#{ error.message }"
+    rescue NoMethodError => e
+      raise e, "Perhaps you meant to call #{key.inspect} in #{self.class.name} instead?\nTry using `serializer_attributes :#{key}` or `attribute def #{key}`.\n#{e.message}"
     end
 
     alias original_write_value_using_mongoid_strategy write_value_using_mongoid_strategy
@@ -139,9 +139,7 @@ private
       original_write_value_using_mongoid_strategy(writer, key).tap do
         # Apply a fake selection when 'only' is not used, so that we allow
         # read_attribute to fail on typos, renamed, and removed fields.
-        unless @object.__selected_fields
-          @object.__selected_fields = @object.fields.merge(@object.relations.select { |_key, value| value.embedded? }).transform_values { 1 }
-        end
+        @object.__selected_fields = @object.fields.merge(@object.relations.select { |_key, value| value.embedded? }).transform_values { 1 } unless @object.__selected_fields
         @object.read_attribute(key) # Raise a missing attribute exception if it's missing.
       end
     rescue StandardError => e

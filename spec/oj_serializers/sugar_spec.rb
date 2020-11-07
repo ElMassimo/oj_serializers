@@ -35,7 +35,7 @@ RSpec.describe AlbumsController, type: :controller do
 
     get :legacy_list
     legacy_albums = parse_json[:albums]
-    expect(legacy_albums.map { |album| album.except(:special) }).to eq albums
+    expect(legacy_albums.map { |a| a.except(:special) }).to eq albums
 
     get :legacy_show
     legacy_album = parse_json
