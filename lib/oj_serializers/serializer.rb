@@ -228,8 +228,8 @@ private
   protected
 
     # Internal: Calculates the cache_key used to cache one serialized item.
-    def item_cache_key(item, cache_key_proc, options)
-      cache_key_proc.parameters.count == 1 ? cache_key_proc.call(item) : cache_key_proc.call(item, options || item.try(:options) || {})
+    def item_cache_key(item, cache_key_proc)
+      ActiveSupport::Cache.expand_cache_key(cache_key_proc.call(item))
     end
 
     # Public: Allows to define a cache key strategy for the serializer.
@@ -237,11 +237,11 @@ private
     #
     # NOTE: Benchmark it, sometimes caching is actually SLOWER.
     def cached(cache_key_proc = :cache_key.to_proc)
-      cache_options = { namespace: "#{name}#write_to_json" }.freeze
+      cache_options = { namespace: "#{name}#write_to_json", version: OjSerializers::VERSION }.freeze
 
       # Internal: Redefine `write_one` to use the cache for the serialized JSON.
       define_singleton_method(:write_one) do |external_writer, item, options = nil|
-        cached_item = CACHE.fetch(item_cache_key(item, cache_key_proc, options), cache_options) do
+        cached_item = CACHE.fetch(item_cache_key(item, cache_key_proc), cache_options) do
           writer = new_json_writer
           non_cached_write_one(writer, item, options)
           writer.to_json
@@ -258,7 +258,7 @@ private
         # NOTE: The assignment is important, as queries would return different
         # objects when expanding with the splat in fetch_multi.
         items = items.entries.each do |item|
-          item_key = item_cache_key(item, cache_key_proc, options)
+          item_key = item_cache_key(item, cache_key_proc)
           item.define_singleton_method(:cache_key) { item_key }
         end
 
@@ -373,56 +373,69 @@ private
     # code by hand.
     def write_to_json_body
       <<~WRITE_TO_JSON
-          # Public: Writes this serializer content to a provided Oj::StringWriter.
-          def write_to_json(writer)
-        #{ _attributes.map do |method_name, attribute_options|
-          include_method_name = "include_#{method_name}?"
-          if render_if = attribute_options[:if]
-            define_method(include_method_name, &render_if)
-          end
-          <<-WRITE_ATTRIBUTE
-            #{attribute_options.fetch(:strategy)}(writer, #{method_name.inspect})#{" if #{include_method_name}" if method_defined?(include_method_name)}
-          WRITE_ATTRIBUTE
-        end.join }
-        #{ _associations.map do |method_name, association_options|
-          include_method_name = "include_#{method_name}?"
-          if render_if = association_options[:if]
-            define_method(include_method_name, &render_if)
-          end
-
-          # NOTE: Use a serializer method if defined, else call the association in the object.
-          association_method = method_defined?(method_name) ? method_name : "@object.#{method_name}"
-          association_root = association_options[:root]
-          serializer_class = association_options.fetch(:serializer)
-
-          write_association_body = case write_method = association_options.fetch(:write_method)
-          when :write_one
-            <<-WRITE_ONE
-            if associated_object = #{association_method}
-              writer.push_key(#{association_root.to_s.inspect})
-              #{serializer_class}.write_one(writer, associated_object)
-            end
-            WRITE_ONE
-          when :write_many
-            <<-WRITE_MANY
-            writer.push_key(#{association_root.to_s.inspect})
-            #{serializer_class}.write_many(writer, #{association_method})
-            WRITE_MANY
-          when :write_flat
-            <<-WRITE_FLAT
-            #{serializer_class}.write_flat(writer, #{association_method})
-            WRITE_FLAT
-          else
-            raise ArgumentError, "Unknown write_method #{write_method}"
-          end
-
-          if method_defined?(include_method_name)
-            "if #{include_method_name};#{write_association_body};end\n"
-          else
-            write_association_body
-          end
-        end.join }  end
+        # Public: Writes this serializer content to a provided Oj::StringWriter.
+        def write_to_json(writer)
+          #{ _attributes.map { |method_name, attribute_options|
+            write_conditional_body(method_name, attribute_options) {
+              <<-WRITE_ATTRIBUTE
+                #{attribute_options.fetch(:strategy)}(writer, #{method_name.inspect})
+              WRITE_ATTRIBUTE
+            }
+          }.join }
+          #{ _associations.map { |method_name, association_options|
+            write_conditional_body(method_name, association_options) {
+              write_association_body(method_name, association_options)
+            }
+          }.join}
+        end
       WRITE_TO_JSON
+    end
+
+    # Internal: Returns the code to render an attribute or association
+    # conditionally.
+    #
+    # NOTE: Detects any include methods defined in the serializer, or defines
+    # one by using the lambda passed in the `if` option, if any.
+    def write_conditional_body(method_name, options)
+      include_method_name = "include_#{method_name}?"
+      if render_if = options[:if]
+        define_method(include_method_name, &render_if)
+      end
+
+      if method_defined?(include_method_name)
+        "if #{include_method_name};#{yield};end\n"
+      else
+        yield
+      end
+    end
+
+    # Internal: Returns the code for the association method.
+    def write_association_body(method_name, association_options)
+      # Use a serializer method if defined, else call the association in the object.
+      association_method = method_defined?(method_name) ? method_name : "@object.#{method_name}"
+      association_root = association_options[:root]
+      serializer_class = association_options.fetch(:serializer)
+
+      case write_method = association_options.fetch(:write_method)
+      when :write_one
+        <<-WRITE_ONE
+        if associated_object = #{association_method}
+          writer.push_key(#{association_root.to_s.inspect})
+          #{serializer_class}.write_one(writer, associated_object)
+        end
+        WRITE_ONE
+      when :write_many
+        <<-WRITE_MANY
+        writer.push_key(#{association_root.to_s.inspect})
+        #{serializer_class}.write_many(writer, #{association_method})
+        WRITE_MANY
+      when :write_flat
+        <<-WRITE_FLAT
+        #{serializer_class}.write_flat(writer, #{association_method})
+        WRITE_FLAT
+      else
+        raise ArgumentError, "Unknown write_method #{write_method}"
+      end
     end
 
     # Internal: Allows to obtain a pre-existing instance and binds it to the

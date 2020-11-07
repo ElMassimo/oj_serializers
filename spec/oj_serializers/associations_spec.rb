@@ -2,21 +2,23 @@
 
 require 'spec_helper'
 require 'support/models/sql'
-require 'support/serializers/album_serializer'
 
-class CachedAlbumSerializer < AlbumSerializer
-  cached_with_key ->(album) { [album.name] }
-end
+RSpec.describe 'Associations', type: :serializer do
+  let!(:game) { Game.example }
+  let!(:games) { [game] * 2 }
 
-RSpec.describe 'Caching', type: :serializer do
-  let!(:album) { Album.abraxas }
-  let!(:albums) { [album] * 5 }
-
-  it 'should reuse the cache effectively' do
-    expect(CachedAlbumSerializer.one(album).to_json).to eq AlbumSerializer.one(album).to_json
-
-    expect_any_instance_of(Album).not_to receive(:release_date)
-    expect(JSON.parse(CachedAlbumSerializer.one(album))['name']).to eq album.name
-    expect(JSON.parse(CachedAlbumSerializer.many(albums)).first['name']).to eq album.name
+  it 'should render has_one, has_many, and flat_one' do
+    attrs = {
+      name: 'Tetris',
+      high_score: 1500,
+      score: 3165,
+      best_player: { first_name: 'Alexey', last_name: 'Pajitnov', full_name: 'Alexey Pajitnov' },
+      players: [
+        { first_name: 'Alexey', last_name: 'Pajitnov', full_name: 'Alexey Pajitnov' },
+        { first_name: 'Vadim', last_name: 'Gerasimov', full_name: 'Vadim Gerasimov' },
+      ],
+    }
+    expect_parsed_json(GameSerializer.one(game)).to eq attrs
+    expect_parsed_json(GameSerializer.many(games)).to eq [attrs, attrs]
   end
 end

@@ -29,7 +29,7 @@ ActiveRecord::Schema.define do
 end
 
 class Game < ActiveRecord::Base
-  belongs_to :best_player
+  belongs_to :best_player, class_name: 'Player'
 
   has_many :players
 
@@ -54,4 +54,25 @@ class Player < ActiveRecord::Base
   def full_name
     "#{first_name} #{last_name}"
   end
+end
+
+class PlayerSerializer < Oj::Serializer
+  attributes :id, if: -> { player.persisted? }
+  attributes :first_name, :last_name, :full_name
+end
+
+# NOTE: This example is quite contrived. Finding good test cases is as hard as
+# finding good names.
+class ScoresSerializer < Oj::Serializer
+  attributes :high_score, :score
+end
+
+class GameSerializer < Oj::Serializer
+  attributes :id, if: -> { game.persisted? }
+  attributes :name
+
+  flat_one :game, serializer: ScoresSerializer
+
+  has_one :best_player, serializer: PlayerSerializer
+  has_many :players, serializer: PlayerSerializer
 end

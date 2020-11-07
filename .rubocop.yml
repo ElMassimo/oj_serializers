@@ -24,6 +24,9 @@ Style/Lambda:
 Style/ClassAndModuleChildren:
   Enabled: false
 
+Style/BlockDelimiters:
+  Enabled: false
+
 Layout/AccessModifierIndentation:
   Enabled: true
   EnforcedStyle: outdent
