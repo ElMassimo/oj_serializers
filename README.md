@@ -13,6 +13,7 @@ Oj Serializers
 JSON serializers for Ruby, built on top of the powerful [`oj`][oj] library.
 
 [oj]: https://github.com/ohler55/oj
+[mongoid]: https://github.com/mongodb/mongoid
 [ams]: https://github.com/rails-api/active_model_serializers
 [jsonapi]: https://github.com/jsonapi-serializer/jsonapi-serializer
 [panko]: https://github.com/panko-serializer/panko_serializer
@@ -236,8 +237,6 @@ maintainable.
 
 Obtains the attribute value by calling a method defined in the serializer.
 
-The serializer's attribute methods can access the object being serialized as `object`,
-or by the serializer name (without the `Serializer` suffix).
 
 You may call [`serializer_attributes`](https://github.com/ElMassimo/oj_serializers/blob/master/spec/support/serializers/song_serializer.rb#L13-L15) or use the `attribute` inline syntax:
 
@@ -250,21 +249,10 @@ class PlayerSerializer < Oj::Serializer
 end
 ```
 
-### `mongo_attributes` 🚀
+Instance methods can access the object by the serializer name without the
+`Serializer` suffix, `player` in the example above, or directly as `@object`.
 
-Reads data directly from the document `attributes`, with the addition that if
-you specify `:id`, it will read serialize `_id` as `id`.
-
-By skipping type casting, coercion, and defaults, it [achieves the best performance][raw_benchmarks].
-
-Although there are some downsides, depending on how consistent your schema is,
-and which kind of consumer the API has, it can be really powerful.
-
-```ruby
-class AlbumSerializer < Oj::Serializer
-  mongo_attributes :id, :name
-end
-```
+You can customize this by using [`object_as`](https://github.com/ElMassimo/oj_serializers#using-a-different-alias-for-the-internal-object).
 
 ### `ams_attributes` 🐌
 
@@ -297,6 +285,21 @@ end
 
 PersonSerializer.one('first_name' => 'Mary', :middle_name => 'Jane', :last_name => 'Watson')
 # {"first_name":"Mary","last_name":"Watson"}
+```
+
+### `mongo_attributes` 🚀
+
+Reads data directly from `attributes` in a [Mongoid] document.
+
+By skipping type casting, coercion, and defaults, it [achieves the best performance][raw_benchmarks].
+
+Although there are some downsides, depending on how consistent your schema is,
+and which kind of consumer the API has, it can be really powerful.
+
+```ruby
+class AlbumSerializer < Oj::Serializer
+  mongo_attributes :id, :name
+end
 ```
 
 ## Associations DSL 🛠
