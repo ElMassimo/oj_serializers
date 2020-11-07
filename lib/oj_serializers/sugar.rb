@@ -4,6 +4,7 @@ require 'rails/railtie'
 require 'action_controller'
 require 'action_controller/railtie'
 
+require 'oj_serializers'
 require 'oj_serializers/controller_serialization'
 
 # Internal: Allows to pass Oj serializers as options in `render`.
