@@ -222,9 +222,6 @@ private
       @_associations
     end
 
-    # Internal: Iterating arrays is faster than iterating hashes.
-    attr_reader :_attributes_entries, :_associations_entries
-
   protected
 
     # Internal: Calculates the cache_key used to cache one serialized item.
