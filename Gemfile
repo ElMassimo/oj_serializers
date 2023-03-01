@@ -5,7 +5,7 @@ source 'https://rubygems.org'
 # Specify your gem's dependencies in oj_serializers.gemspec
 gemspec
 
-gem 'rake', '~> 12.0'
+gem 'rake', '~> 13'
 
 group :development do
   gem 'pry-byebug'

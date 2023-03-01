@@ -58,15 +58,16 @@ GEM
       nokogiri (>= 1.5.9)
     memory_profiler (0.9.14)
     method_source (1.0.0)
-    mini_portile2 (2.4.0)
+    mini_portile2 (2.8.1)
     minitest (5.14.2)
     mongo (2.13.1)
       bson (>= 4.8.2, < 5.0.0)
     mongoid (7.1.4)
       activemodel (>= 5.1, < 6.1)
       mongo (>= 2.7.0, < 3.0.0)
-    nokogiri (1.10.10)
-      mini_portile2 (~> 2.4.0)
+    nokogiri (1.14.2)
+      mini_portile2 (~> 2.8.0)
+      racc (~> 1.4)
     oj (3.10.15)
     parallel (1.19.2)
     parser (2.7.1.4)
@@ -77,6 +78,7 @@ GEM
     pry-byebug (3.9.0)
       byebug (~> 11.0)
       pry (~> 0.13.0)
+    racc (1.6.2)
     rack (2.2.3)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
@@ -92,7 +94,7 @@ GEM
       rake (>= 0.8.7)
       thor (>= 0.20.3, < 2.0)
     rainbow (3.0.0)
-    rake (12.3.3)
+    rake (13.0.6)
     regexp_parser (1.7.1)
     rexml (3.2.4)
     rspec (3.9.0)
@@ -154,7 +156,7 @@ DEPENDENCIES
   oj_serializers!
   pry-byebug
   railties (>= 4.0)
-  rake (~> 12.0)
+  rake (~> 13)
   rspec (~> 3.0)
   rspec-rails
   rubocop
@@ -162,4 +164,4 @@ DEPENDENCIES
   sqlite3
 
 BUNDLED WITH
-   2.1.4
+   2.3.22
