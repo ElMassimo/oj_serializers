@@ -448,7 +448,7 @@ private
     # Internal: Cache key to set a thread-local instance.
     def instance_key
       unless defined?(@instance_key)
-        @instance_key = "#{name.underscore}_instance".to_sym
+        @instance_key = "#{name.underscore}_instance_#{object_id}".to_sym
         # We take advantage of the fact that this method will always be called
         # before instantiating a serializer to define the write_to_json method.
         class_eval(write_to_json_body)
