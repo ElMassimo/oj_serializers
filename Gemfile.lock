@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    oj_serializers (1.0.1)
+    oj_serializers (1.0.2)
       oj (>= 3.8.0)
 
 GEM
@@ -68,7 +68,7 @@ GEM
     nokogiri (1.14.2)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
-    oj (3.13.20)
+    oj (3.14.2)
     parallel (1.19.2)
     parser (2.7.1.4)
       ast (~> 2.4.1)
