@@ -19,7 +19,7 @@ require 'oj_serializers/json_value'
 class OjSerializers::Serializer
   # Public: Used to validate incorrect memoization during development. Users of
   # this library might add additional options as needed.
-  ALLOWED_INSTANCE_VARIABLES = %w[memo object].freeze
+  ALLOWED_INSTANCE_VARIABLES = %w[memo object]
 
   CACHE = (defined?(Rails) && Rails.cache) ||
           (defined?(ActiveSupport::Cache::MemoryStore) ? ActiveSupport::Cache::MemoryStore.new : OjSerializers::Memo.new)
