@@ -38,7 +38,7 @@ Learn more about [how this library achieves its performance][design].
 
 - Declaration syntax similar to Active Model Serializers
 - Reduced memory allocation and [improved performance][benchmarks]
-- Support for `has_one` and `has_many`, compose with `flat_one`
+- Support for `has_one`, `has_many`, and `belongs_to`; compose with `flat_one`
 - Useful development checks to avoid typos and mistakes
 - Integrates nicely with Rails controllers
 - Caching
@@ -394,6 +394,24 @@ private
     }
   end
 end
+```
+
+### Hash form
+
+The hashed form of the serializer can also be returned (does not impact string serialization).
+
+```ruby
+class PersonSerializer < Oj::Serializer
+  attributes :first_name, :last_name
+end
+
+# person = Person.new(first_name: 'Mary', last_name: 'Watson')
+PersonSerializer.one_as_hash(person)
+# { first_name: 'Mary', last_name: 'Watson' }
+
+# people = [...]
+PersonSerializer.many_as_hash(people)
+# [{ first_name:"Mary", last_name:"Watson" }, ...]
 ```
 
 ### Caching 📦

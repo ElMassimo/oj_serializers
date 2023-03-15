@@ -48,6 +48,12 @@ class OjSerializers::Serializer
     write_to_json(writer)
   end
 
+  def update_state_for_hash(item, options = {})
+    item.define_singleton_method(:options) { options }
+    @memo.clear if defined?(@memo)
+    @object = item
+  end
+
   # NOTE: Helps developers to remember to keep serializers stateless.
   if DEV_MODE
     prepend(Module.new do
@@ -69,8 +75,8 @@ class OjSerializers::Serializer
   #
   # NOTE: Binds this instance to the specified object and options and writes
   # to json using the provided writer.
-  def write_one(writer, item, options = nil)
-    item.define_singleton_method(:options) { options } if options
+  def write_one(writer, item, options = {})
+    item.define_singleton_method(:options) { options }
     writer.push_object
     write_flat(writer, item)
     writer.pop
@@ -81,7 +87,7 @@ class OjSerializers::Serializer
   # writer - writer used to serialize results
   # items - items to serialize results for
   # options - list of external options to pass to the serializer (available as `options`)
-  def write_many(writer, items, options = nil)
+  def write_many(writer, items, options = {})
     writer.push_array
     items.each do |item|
       write_one(writer, item, options)
@@ -156,7 +162,7 @@ private
 
     # Internal: Delegates to the instance methods, the advantage is that we can
     # reuse the same serializer instance to serialize different objects.
-    delegate :write_one, :write_many, :write_flat, to: :instance
+    delegate :write_one, :write_many, :write_flat, :update_state_for_hash, to: :instance
 
     # Internal: Keep a reference to the default `write_one` method so that we
     # can use it inside cached overrides and benchmark tests.
@@ -167,7 +173,7 @@ private
     alias non_cached_write_many write_many
 
     # Helper: Serializes the item unless it's nil.
-    def one_if(item, options = nil)
+    def one_if(item, options = {})
       one(item, options) if item
     end
 
@@ -177,10 +183,23 @@ private
     # options - list of external options to pass to the sub class (available in `item.options`)
     #
     # Returns an Oj::StringWriter instance, which is encoded as raw json.
-    def one(item, options = nil)
+    def one(item, options = {})
       writer = new_json_writer
       write_one(writer, item, options)
       writer
+    end
+
+    # Public: Hashes the configured attributes for the specified object.
+    #
+    # item - the item to serialize
+    # options - list of external options to pass to the sub class (available in `item.options`)
+    #
+    # Returns a Hash.
+    def one_as_hash(item, options = {})
+      return unless item
+
+      update_state_for_hash(item, options)
+      _attributes_hash(item).merge(_associations_hash(item))
     end
 
     # Public: Serializes an array of items using this serializer.
@@ -189,10 +208,20 @@ private
     # options - list of external options to pass to the sub class (available in `item.options`)
     #
     # Returns an Oj::StringWriter instance, which is encoded as raw json.
-    def many(items, options = nil)
+    def many(items, options = {})
       writer = new_json_writer
       write_many(writer, items, options)
       writer
+    end
+
+    # Public: Hashes an array of items using this serializer.
+    #
+    # items - Must respond to `each`.
+    # options - list of external options to pass to the sub class (available in `item.options`)
+    #
+    # Returns an Array.
+    def many_as_hash(items, options = {})
+      items.map { |item| one_as_hash(item, options) }
     end
 
     # Public: Creates an alias for the internal object.
@@ -224,6 +253,46 @@ private
 
   protected
 
+    # Internal: Hashes the attributes on the item using this serializer.
+    #
+    # item - item to be hashed
+    #
+    # Returns a Hash.
+    def _attributes_hash(item)
+      _attributes.each_with_object({}) do |pair, hash|
+        hash[pair[0]] = fetch_value_from_strategy(item, pair[1][:strategy], pair[0])
+      end
+    end
+
+    # Internal: Hashes the associations on the item using the serializer options.
+    #
+    # items - items to be hashed
+    #
+    # Returns a Hash.
+    def _associations_hash(item)
+      _associations.each_with_object({}) do |pair, hash|
+        hash[pair[0]] = if pair[1][:write_method] == :write_many
+                          item.send(pair[0]).map { |child| pair[1][:serializer].one_as_hash(child) }
+                        else
+                          pair[1][:serializer].one_as_hash(item.send(pair[0]))
+                        end
+      end
+    end
+
+    # Obtains the value from the object or serializer using the specified strategy.
+    def fetch_value_from_strategy(item, strategy, key)
+      case strategy
+      when :write_value_using_mongoid_strategy
+        item.attributes[key]
+      when :write_value_using_hash_strategy
+        item[key]
+      when :write_value_using_method_strategy
+        item.send(key)
+      when :write_value_using_serializer_strategy
+        instance.send(key)
+      end
+    end
+
     # Internal: Calculates the cache_key used to cache one serialized item.
     def item_cache_key(item, cache_key_proc)
       ActiveSupport::Cache.expand_cache_key(cache_key_proc.call(item))
@@ -237,7 +306,7 @@ private
       cache_options = { namespace: "#{name}#write_to_json", version: OjSerializers::VERSION }.freeze
 
       # Internal: Redefine `write_one` to use the cache for the serialized JSON.
-      define_singleton_method(:write_one) do |external_writer, item, options = nil|
+      define_singleton_method(:write_one) do |external_writer, item, options = {}|
         cached_item = CACHE.fetch(item_cache_key(item, cache_key_proc), cache_options) do
           writer = new_json_writer
           non_cached_write_one(writer, item, options)
@@ -247,7 +316,7 @@ private
       end
 
       # Internal: Redefine `write_many` to use fetch_multi from cache.
-      define_singleton_method(:write_many) do |external_writer, items, options = nil|
+      define_singleton_method(:write_many) do |external_writer, items, options = {}|
         # We define a one-off method for the class to receive the entire object
         # inside the `fetch_multi` block. Otherwise we would only get the cache
         # key, and we would need to build a Hash to retrieve the object.
@@ -286,6 +355,11 @@ private
 
     # Public: Specify an object that should be serialized using the serializer.
     def has_one(name, root: name, serializer:, **options)
+      add_association(name, write_method: :write_one, root: root, serializer: serializer, **options)
+    end
+
+    # Public: Specify an object that should be serialized using the serializer.
+    def belongs_to(name, root: name, serializer:, **options)
       add_association(name, write_method: :write_one, root: root, serializer: serializer, **options)
     end
 
