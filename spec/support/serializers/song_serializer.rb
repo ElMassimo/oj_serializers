@@ -10,10 +10,7 @@ class SongSerializer < Oj::Serializer
     :name,
   )
 
-  serializer_attributes(
-    :composers,
-  )
-
+  attribute \
   def composers
     song.composer&.split(', ')
   end

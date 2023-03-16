@@ -14,6 +14,7 @@ end
 
 group :test do
   gem 'active_model_serializers', '~> 0.8'
+  gem 'blueprinter', '~> 0.8'
   gem 'activerecord'
   gem 'mongoid'
   gem 'rspec', '~> 3.0'
