@@ -116,33 +116,6 @@ protected
 
 private
 
-  # Strategy: Writes an _id value to JSON using `id` as the key instead.
-  # NOTE: We skip the id for non-persisted documents, since it doesn't actually
-  # identify the document (it will change once it's persisted).
-  def write_value_using_id_strategy(writer, _key)
-    writer.push_value(@object.attributes['_id'], 'id') unless @object.new_record?
-  end
-
-  # Strategy: Writes an Mongoid attribute to JSON, this is the fastest strategy.
-  def write_value_using_mongoid_strategy(writer, key)
-    writer.push_value(@object.attributes[key], key)
-  end
-
-  # Strategy: Writes a Hash value to JSON, works with String or Symbol keys.
-  def write_value_using_hash_strategy(writer, key)
-    writer.push_value(@object[key], key.to_s)
-  end
-
-  # Strategy: Obtains the value by calling a method in the object, and writes it.
-  def write_value_using_method_strategy(writer, key)
-    writer.push_value(@object.send(key), key)
-  end
-
-  # Strategy: Obtains the value by calling a method in the serializer.
-  def write_value_using_serializer_strategy(writer, key)
-    writer.push_value(send(key), key)
-  end
-
   class << self
     # Public: Allows the user to specify `default_format :json`, as a simple
     # way to ensure that `.one` and `.many` work as in Version 1.
@@ -189,6 +162,11 @@ private
     # Helper: Serializes one or more items.
     def render(item, options = nil)
       many?(item) ? many(item, options) : one(item, options)
+    end
+
+    # Helper: Serializes one or more items.
+    def render_as_hash(item, options = nil)
+      many?(item) ? many_as_hash(item, options) : one_as_hash(item, options)
     end
 
     # Helper: Serializes the item unless it's nil.
@@ -420,7 +398,7 @@ private
               if options[:association]
                 code_to_write_association(method_name, options)
               else
-                "write_value_using_#{options.fetch(:attribute)}_strategy(writer, #{method_name.inspect})"
+                code_to_write_attribute(method_name, options)
               end
             }
           }.join("\n  ") }#{code_to_rescue_no_method if DEV_MODE}
@@ -484,6 +462,34 @@ private
         "if #{include_method_name};#{yield};end\n"
       else
         yield
+      end
+    end
+
+    # Internal: Returns the code for the association method.
+    def code_to_write_attribute(method_name, options)
+      key = key_for(method_name, options).to_s.inspect
+
+      case strategy = options.fetch(:attribute)
+      when :serializer
+        # Obtains the value by calling a method in the serializer.
+        "writer.push_value(#{method_name}, #{key})"
+      when :method
+        # Obtains the value by calling a method in the object, and writes it.
+        "writer.push_value(@object.#{method_name}, #{key})"
+      when :hash
+        # Writes a Hash value to JSON, works with String or Symbol keys.
+        "writer.push_value(@object[#{method_name.inspect}], #{key})"
+      when :mongoid
+        # Writes an Mongoid attribute to JSON, this is the fastest strategy.
+        "writer.push_value(@object.attributes['#{method_name}'], #{key})"
+      when :id
+        # Writes an _id value to JSON using `id` as the key instead.
+        #
+        # NOTE: We skip the id for non-persisted documents, since it doesn't actually
+        # identify the document (it will change once it's persisted).
+        "writer.push_value(@object.attributes['_id'], 'id') unless @object.new_record?"
+      else
+        raise ArgumentError, "Unknown attribute strategy: #{strategy.inspect}"
       end
     end
 
