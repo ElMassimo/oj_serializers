@@ -66,6 +66,8 @@ GEM
       mongo (>= 2.7.0, < 3.0.0)
     nokogiri (1.14.2-arm64-darwin)
       racc (~> 1.4)
+    nokogiri (1.14.2-x86_64-linux)
+      racc (~> 1.4)
     oj (3.14.2)
     parallel (1.19.2)
     parser (2.7.1.4)
@@ -139,6 +141,7 @@ GEM
 
 PLATFORMS
   arm64-darwin-21
+  x86_64-linux
 
 DEPENDENCIES
   actionpack (>= 4.0)
