@@ -19,10 +19,10 @@ RSpec.describe 'Memory Usage', :benchmark do
   it 'should require less memory when serializing an object' do
     album
     report = Benchmark.memory do |x|
-      x.report("oj") { Oj.dump AlbumSerializer.one_as_json(album) }
-      x.report("oj_hash") { Oj.dump AlbumSerializer.one_as_hash(album) }
-      x.report("ams") { Oj.dump LegacyAlbumSerializer.new(album) }
-      x.report("blueprinter") { AlbumBlueprint.render(album) }
+      x.report('oj') { Oj.dump AlbumSerializer.one_as_json(album) }
+      x.report('oj_hash') { Oj.dump AlbumSerializer.one_as_hash(album) }
+      x.report('ams') { Oj.dump LegacyAlbumSerializer.new(album) }
+      x.report('blueprinter') { AlbumBlueprint.render(album) }
       x.compare!
     end
     entries = report.comparison.entries
@@ -33,10 +33,10 @@ RSpec.describe 'Memory Usage', :benchmark do
   it 'should require less memory when serializing a collection' do
     albums
     report = Benchmark.memory do |x|
-      x.report("oj") { Oj.dump AlbumSerializer.many_as_json(albums) }
-      x.report("oj_hash") { Oj.dump AlbumSerializer.many_as_hash(albums) }
-      x.report("ams") { Oj.dump(albums.map { |album| LegacyAlbumSerializer.new(album) }) }
-      x.report("blueprinter") { AlbumBlueprint.render(albums) }
+      x.report('oj') { Oj.dump AlbumSerializer.many_as_json(albums) }
+      x.report('oj_hash') { Oj.dump AlbumSerializer.many_as_hash(albums) }
+      x.report('ams') { Oj.dump(albums.map { |album| LegacyAlbumSerializer.new(album) }) }
+      x.report('blueprinter') { AlbumBlueprint.render(albums) }
       x.compare!
     end
     entries = report.comparison.entries

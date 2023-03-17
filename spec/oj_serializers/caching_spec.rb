@@ -4,20 +4,20 @@ require 'spec_helper'
 require 'support/models/album'
 require 'support/serializers/album_serializer'
 
+class CachedSongSerializer < SongSerializer
+  # cached
+end
+
+class CachedAlbumSerializer < AlbumSerializer
+  # cached_with_key ->(album) { [album.name] }
+
+  has_many :songs, serializer: CachedSongSerializer
+end
+
 RSpec.xdescribe 'Caching', type: :serializer do
   let!(:album) { Album.abraxas }
   let!(:other_album) { Album.new(name: 'Amigos', release_date: Date.new(1976, 3, 26)) }
   let!(:albums) { [album, other_album] }
-
-  class CachedSongSerializer < SongSerializer
-    # cached
-  end
-
-  class CachedAlbumSerializer < AlbumSerializer
-    # cached_with_key ->(album) { [album.name] }
-
-    has_many :songs, serializer: CachedSongSerializer
-  end
 
   it 'should reuse the cache effectively' do
     attrs = parse_json(AlbumSerializer.one(album))

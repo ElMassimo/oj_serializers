@@ -24,19 +24,16 @@ module OjSerializers::JsonStringEncoder
       else
         object
       end
-      Oj.dump(root ? {root => result} : result)
+      Oj.dump(root ? { root => result } : result)
     end
 
     if OjSerializers::Serializer::DEV_MODE
       alias actual_encode_to_json encode_to_json
       # Internal: Allows to detect misusage of the options during development.
       def encode_to_json(object, root: nil, serializer: nil, each_serializer: nil, **options)
-        if serializer && serializer < OjSerializers::Serializer
-          raise ArgumentError, 'You must use `each_serializer` when serializing collections' if object.respond_to?(:map)
-        end
-        if each_serializer && each_serializer < OjSerializers::Serializer
-          raise ArgumentError, 'You must use `serializer` when serializing a single object' unless object.respond_to?(:map)
-        end
+        raise ArgumentError, 'You must use `each_serializer` when serializing collections' if serializer && serializer < OjSerializers::Serializer && object.respond_to?(:map)
+        raise ArgumentError, 'You must use `serializer` when serializing a single object' if each_serializer && each_serializer < OjSerializers::Serializer && !object.respond_to?(:map)
+
         actual_encode_to_json(object, root: root, serializer: serializer, each_serializer: each_serializer, **options)
       end
     end

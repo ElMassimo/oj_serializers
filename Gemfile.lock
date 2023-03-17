@@ -36,7 +36,7 @@ GEM
       minitest (~> 5.1)
       tzinfo (~> 1.1)
       zeitwerk (~> 2.2, >= 2.2.2)
-    ast (2.4.1)
+    ast (2.4.2)
     benchmark-ips (2.8.3)
     benchmark-memory (0.1.2)
       memory_profiler (~> 0.9)
@@ -72,8 +72,8 @@ GEM
     nokogiri (1.14.2-x86_64-linux)
       racc (~> 1.4)
     oj (3.14.2)
-    parallel (1.19.2)
-    parser (2.7.1.4)
+    parallel (1.22.1)
+    parser (3.2.1.1)
       ast (~> 2.4.1)
     pry (0.13.1)
       coderay (~> 1.1)
@@ -96,10 +96,10 @@ GEM
       method_source
       rake (>= 0.8.7)
       thor (>= 0.20.3, < 2.0)
-    rainbow (3.0.0)
+    rainbow (3.1.1)
     rake (13.0.6)
-    regexp_parser (1.7.1)
-    rexml (3.2.4)
+    regexp_parser (2.7.0)
+    rexml (3.2.5)
     rspec-core (3.9.3)
       rspec-support (~> 3.9.3)
     rspec-expectations (3.9.3)
@@ -117,18 +117,19 @@ GEM
       rspec-mocks (~> 3.9)
       rspec-support (~> 3.9)
     rspec-support (3.9.4)
-    rubocop (0.86.0)
+    rubocop (1.48.1)
+      json (~> 2.3)
       parallel (~> 1.10)
-      parser (>= 2.7.0.1)
+      parser (>= 3.2.0.0)
       rainbow (>= 2.2.2, < 4.0)
-      regexp_parser (>= 1.7)
-      rexml
-      rubocop-ast (>= 0.0.3, < 1.0)
+      regexp_parser (>= 1.8, < 3.0)
+      rexml (>= 3.2.5, < 4.0)
+      rubocop-ast (>= 1.26.0, < 2.0)
       ruby-progressbar (~> 1.7)
-      unicode-display_width (>= 1.4.0, < 2.0)
-    rubocop-ast (0.1.0)
-      parser (>= 2.7.0.1)
-    ruby-progressbar (1.10.1)
+      unicode-display_width (>= 2.4.0, < 3.0)
+    rubocop-ast (1.27.0)
+      parser (>= 3.2.1.0)
+    ruby-progressbar (1.13.0)
     simplecov (0.17.1)
       docile (~> 1.1)
       json (>= 1.8, < 3)
@@ -139,7 +140,7 @@ GEM
     thread_safe (0.3.6)
     tzinfo (1.2.7)
       thread_safe (~> 0.1)
-    unicode-display_width (1.7.0)
+    unicode-display_width (2.4.2)
     zeitwerk (2.4.1)
 
 PLATFORMS
@@ -147,7 +148,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  actionpack (>= 4.0)
+  actionpack
   active_model_serializers (~> 0.8)
   activerecord
   benchmark-ips
@@ -157,7 +158,7 @@ DEPENDENCIES
   mongoid
   oj_serializers!
   pry-byebug (~> 3.9)
-  railties (>= 4.0)
+  railties
   rake (~> 13.0)
   rspec-rails (~> 4.0)
   rubocop

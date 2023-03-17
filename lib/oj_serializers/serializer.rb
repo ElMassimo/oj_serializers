@@ -265,7 +265,7 @@ private
         singleton_class.alias_method :one, :"one_as_#{format}"
         singleton_class.alias_method :many, :"many_as_#{format}"
       else
-        raise ArgumentError,  "Unknown serialization format: #{format.inspect}"
+        raise ArgumentError, "Unknown serialization format: #{format.inspect}"
       end
     end
 
@@ -281,12 +281,12 @@ private
 
     # Public: Specify a collection of objects that should be serialized using
     # the specified serializer.
-    def has_many(name, root: name, as: root, serializer:, **options)
+    def has_many(name, serializer:, root: name, as: root, **options)
       add_attribute(name, association: :many, as: as, serializer: serializer, **options)
     end
 
     # Public: Specify an object that should be serialized using the serializer.
-    def has_one(name, root: name, as: root, serializer:, **options)
+    def has_one(name, serializer:, root: name, as: root, **options)
       add_attribute(name, association: :one, as: as, serializer: serializer, **options)
     end
 
@@ -457,15 +457,15 @@ private
     def code_to_rescue_no_method
       <<~RESCUE_NO_METHOD
 
-      rescue NoMethodError => e
-        key = e.name.to_s.inspect
-        message = if respond_to?(e.name)
-          raise e, "Perhaps you meant to call \#{key} in \#{self.class} instead?\nTry using `serializer_attributes :\#{key}` or `attribute def \#{key}`.\n\#{e.message}"
-        elsif @object.respond_to?(e.name)
-          raise e, "Perhaps you meant to call \#{key} in \#{@object.class} instead?\nTry using `attributes :\#{key}`.\n\#{e.message}"
-        else
-          raise e
-        end
+        rescue NoMethodError => e
+          key = e.name.to_s.inspect
+          message = if respond_to?(e.name)
+            raise e, "Perhaps you meant to call \#{key} in \#{self.class} instead?\nTry using `serializer_attributes :\#{key}` or `attribute def \#{key}`.\n\#{e.message}"
+          elsif @object.respond_to?(e.name)
+            raise e, "Perhaps you meant to call \#{key} in \#{@object.class} instead?\nTry using `attributes :\#{key}`.\n\#{e.message}"
+          else
+            raise e
+          end
       RESCUE_NO_METHOD
     end
 
@@ -497,19 +497,19 @@ private
       case type = options.fetch(:association)
       when :one
         <<~WRITE_ONE
-        if associated_object = #{association_method}
-          writer.push_key('#{key}')
-          #{serializer_class}.write_one(writer, associated_object)
-        end
+          if associated_object = #{association_method}
+            writer.push_key('#{key}')
+            #{serializer_class}.write_one(writer, associated_object)
+          end
         WRITE_ONE
       when :many
         <<~WRITE_MANY
-        writer.push_key('#{key}')
-        #{serializer_class}.write_many(writer, #{association_method})
+          writer.push_key('#{key}')
+          #{serializer_class}.write_many(writer, #{association_method})
         WRITE_MANY
       when :flat
         <<~WRITE_FLAT
-        #{serializer_class}.write_flat(writer, #{association_method})
+          #{serializer_class}.write_flat(writer, #{association_method})
         WRITE_FLAT
       else
         raise ArgumentError, "Unknown association type: #{type.inspect}"

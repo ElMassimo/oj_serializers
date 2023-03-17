@@ -63,77 +63,77 @@ RSpec.describe OjSerializers::JsonStringEncoder, type: :serializer do
     let(:album) { Album.abraxas }
     let(:album_hash) do
       {
-        "name": 'Abraxas',
-        "genres": [
+        name: 'Abraxas',
+        genres: [
           'Pyschodelic Rock',
           'Blues Rock',
           'Jazz Fusion',
           'Latin Rock',
         ],
-        "release": 'September 23, 1970',
-        "songs": [
+        release: 'September 23, 1970',
+        songs: [
           {
-            "track": 1,
-            "name": 'Sing Winds, Crying Beasts',
-            "composers": [
+            track: 1,
+            name: 'Sing Winds, Crying Beasts',
+            composers: [
               'Michael Carabello',
             ],
           },
           {
-            "track": 2,
-            "name": 'Black Magic Woman / Gypsy Queen',
-            "composers": [
+            track: 2,
+            name: 'Black Magic Woman / Gypsy Queen',
+            composers: [
               'Peter Green',
               'Gábor Szabó',
             ],
           },
           {
-            "track": 3,
-            "name": 'Oye como va',
-            "composers": [
+            track: 3,
+            name: 'Oye como va',
+            composers: [
               'Tito Puente',
             ],
           },
           {
-            "track": 4,
-            "name": 'Incident at Neshabur',
-            "composers": [
+            track: 4,
+            name: 'Incident at Neshabur',
+            composers: [
               'Alberto Gianquinto',
               'Carlos Santana',
             ],
           },
           {
-            "track": 5,
-            "name": 'Se acabó',
-            "composers": [
+            track: 5,
+            name: 'Se acabó',
+            composers: [
               'José Areas',
             ],
           },
           {
-            "track": 6,
-            "name": "Mother's Daughter",
-            "composers": [
+            track: 6,
+            name: "Mother's Daughter",
+            composers: [
               'Gregg Rolie',
             ],
           },
           {
-            "track": 7,
-            "name": 'Samba pa ti',
-            "composers": [
+            track: 7,
+            name: 'Samba pa ti',
+            composers: [
               'Santana',
             ],
           },
           {
-            "track": 8,
-            "name": "Hope You're Feeling Better",
-            "composers": [
+            track: 8,
+            name: "Hope You're Feeling Better",
+            composers: [
               'Rolie',
             ],
           },
           {
-            "track": 9,
-            "name": 'El Nicoya',
-            "composers": [
+            track: 9,
+            name: 'El Nicoya',
+            composers: [
               'Areas',
             ],
           },

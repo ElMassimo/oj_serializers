@@ -28,7 +28,7 @@ class AlbumBlueprint < Blueprinter::Base
     :genres,
   )
 
-  field :release, if: ->(_field_name, album, options) { album.released? } do |album|
+  field :release, if: ->(_field_name, album, _options) { album.released? } do |album|
     album.release_date.strftime('%B %d, %Y')
   end
 
