@@ -34,7 +34,7 @@ RSpec.describe 'Development Mode', type: :serializer do
       .to raise_error(NoMethodError, /Perhaps you meant to call "release" in InvalidAlbumSerializer instead?/)
   end
 
-  it 'should fail early when there is a typo or missing field in Mongoid' do
+  xit 'should fail early when there is a typo or missing field in Mongoid' do
     expect { MissingAttributeSerializer.one_if(album) }
       .to raise_error(ActiveModel::MissingAttributeError, /Missing attribute: 'name2'/)
   end

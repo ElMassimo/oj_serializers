@@ -11,7 +11,7 @@ RSpec.describe AlbumsController, type: :controller do
     Rails.application.quick_setup
   end
 
-  it 'should be able to use serializer options and legacy serializers' do
+  it 'should use serializer options' do
     get :list
     albums = parse_json[:albums]
     expect(albums.size).to eq 3
@@ -32,7 +32,9 @@ RSpec.describe AlbumsController, type: :controller do
       name: 'Black Magic Woman / Gypsy Queen',
       composers: ['Peter Green', 'Gábor Szabó'],
     )
+  end
 
+  it 'should be able to render legacy serializers' do
     get :legacy_list
     legacy_albums = parse_json[:albums]
     expect(legacy_albums.map { |a| a.except(:special) }).to eq albums

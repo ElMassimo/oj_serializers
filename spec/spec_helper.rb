@@ -20,6 +20,8 @@ end
 
 module JsonHelpers
   def parse_json(json = response.body)
+    return json if json.is_a?(Array) || json.is_a?(Hash)
+
     item = JSON.parse(json)
     item.is_a?(Array) ? item.map(&:deep_symbolize_keys) : item.deep_symbolize_keys!
   end
@@ -43,4 +45,8 @@ RSpec.configure do |config|
   end
 
   config.include JsonHelpers
+
+  config.before(benchmark: true) do
+    raise ArgumentError, "Please run it with BENCHMARK='true'" unless ENV['BENCHMARK']
+  end
 end

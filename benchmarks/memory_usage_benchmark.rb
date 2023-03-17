@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
 require 'benchmark_helper'
-require 'support/serializers/album_serializer'
-require 'support/serializers/legacy_serializers'
-require 'support/models/album'
 
-RSpec.describe 'Memory Usage' do
+RSpec.describe 'Memory Usage', :benchmark do
   let!(:album) { Album.abraxas.tap(&:attributes) }
   let!(:albums) do
     1000.times.map { Album.abraxas.tap(&:attributes) }
@@ -15,25 +12,56 @@ RSpec.describe 'Memory Usage' do
     AlbumSerializer.send(:instance)
   end
 
+  def format_number(number)
+    whole, decimal = number.to_s.split('.')
+    if whole.to_i < -999 || whole.to_i > 999
+      whole.reverse!.gsub!(/(\d{3})(?=\d)/, '\\1,').reverse!
+    end
+    [whole, decimal].compact.join('.')
+  end
+
+  def report_allocated_bytes
+    MemoryProfiler.report { yield }
+      .allocated_memory_by_class.sum { |data| data[:count] }
+  end
+
   it 'should require less memory when serializing an object' do
-    oj_report = MemoryProfiler.report { AlbumSerializer.one(album).to_json }
-    bytes_allocated_by_oj = oj_report.allocated_memory_by_class.sum { |data| data[:count] }
+    AlbumSerializer.send(:instance)
 
-    ams_report = MemoryProfiler.report { LegacyAlbumSerializer.new(album).to_json }
-    bytes_allocated_by_ams = ams_report.allocated_memory_by_class.sum { |data| data[:count] }
+    oj_bytes = report_allocated_bytes { Oj.dump AlbumSerializer.one_as_json(album) }
+    oj_hash_bytes = report_allocated_bytes { Oj.dump AlbumSerializer.one_as_hash(album) }
+    ams_bytes = report_allocated_bytes { Oj.dump LegacyAlbumSerializer.new(album) }
+    blueprint_bytes = report_allocated_bytes { AlbumBlueprint.render(album) }
 
-    expect(bytes_allocated_by_oj).to be < bytes_allocated_by_ams
-    expect(bytes_allocated_by_oj / bytes_allocated_by_ams.to_f).to be < 0.365
+    puts "Bytes allocated by ams: #{format_number ams_bytes}"
+    puts "Bytes allocated by blueprinter: #{format_number blueprint_bytes}"
+    puts "Bytes allocated by oj_serializers: #{format_number oj_bytes}"
+    puts "Bytes allocated by oj_serializers (hash): #{format_number oj_hash_bytes}"
+
+    expect(oj_hash_bytes).to be < ams_bytes
+    expect(oj_hash_bytes).to be < blueprint_bytes
+    expect(oj_bytes).to be < ams_bytes
+    expect(oj_bytes).to be < blueprint_bytes
+    expect(oj_bytes / ams_bytes.to_f).to be < 0.365
   end
 
   it 'should require less memory when serializing a collection' do
-    oj_report = MemoryProfiler.report { Oj.dump AlbumSerializer.many(albums) }
-    bytes_allocated_by_oj = oj_report.allocated_memory_by_class.sum { |data| data[:count] }
+    AlbumSerializer.send(:instance)
 
-    ams_report = MemoryProfiler.report { Oj.dump(albums.map { |album| LegacyAlbumSerializer.new(album) }) }
-    bytes_allocated_by_ams = ams_report.allocated_memory_by_class.sum { |data| data[:count] }
+    oj_bytes = report_allocated_bytes { Oj.dump AlbumSerializer.many_as_json(albums) }
+    oj_hash_bytes = report_allocated_bytes { Oj.dump AlbumSerializer.many_as_hash(albums) }
+    ams_bytes = report_allocated_bytes { Oj.dump(albums.map { |album| LegacyAlbumSerializer.new(album) }) }
+    blueprint_bytes = report_allocated_bytes { AlbumBlueprint.render(albums) }
 
-    expect(bytes_allocated_by_oj).to be < bytes_allocated_by_ams
-    expect(bytes_allocated_by_oj / bytes_allocated_by_ams.to_f).to be < 0.33
+    puts "Bytes allocated by ams: #{format_number ams_bytes}"
+    puts "Bytes allocated by blueprinter: #{format_number blueprint_bytes}"
+    puts "Bytes allocated by oj_serializers: #{format_number oj_bytes}"
+    puts "Bytes allocated by oj_serializers (hash): #{format_number oj_hash_bytes}"
+
+    expect(oj_hash_bytes).to be < ams_bytes
+    expect(oj_hash_bytes).to be < blueprint_bytes
+    expect(oj_bytes).to be < ams_bytes
+    expect(oj_bytes).to be < blueprint_bytes
+    expect(oj_bytes / ams_bytes.to_f).to be < 0.33
   end
 end

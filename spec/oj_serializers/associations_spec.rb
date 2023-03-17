@@ -18,6 +18,7 @@ RSpec.describe 'Associations', type: :serializer do
         { first_name: 'Vadim', last_name: 'Gerasimov', full_name: 'Vadim Gerasimov' },
       ],
     }
+    puts GameSerializer.send(:render_as_hash_body)
     expect_parsed_json(GameSerializer.one(game)).to eq attrs
     expect_parsed_json(GameSerializer.many(games)).to eq [attrs, attrs]
   end

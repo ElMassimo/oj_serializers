@@ -2,14 +2,7 @@
 
 require 'benchmark_helper'
 
-require 'rails'
-require 'active_support/json'
-require 'oj_serializers/compat'
-require 'support/serializers/active_model_serializer'
-require 'support/serializers/model_serializer'
-require 'support/models/album'
-
-RSpec.describe ModelSerializer, category: :benchmark do
+RSpec.describe 'ModelSerializer', :benchmark do
   context 'albums' do
     let!(:albums) do
       100.times.map { Album.abraxas }
@@ -20,6 +13,12 @@ RSpec.describe ModelSerializer, category: :benchmark do
         x.config(time: 5, warmup: 2)
         x.report('oj_serializers') do
           Oj.dump ModelSerializer.many(albums)
+        end
+        x.report('oj_serializers hash') do
+          Oj.dump ModelSerializer.many_as_hash(albums)
+        end
+        x.report('blueprinter') do
+          ModelBlueprint.render(albums)
         end
         x.report('active_model_serializers') do
           Oj.dump(albums.map { |album| ActiveModelSerializer.new(album) })

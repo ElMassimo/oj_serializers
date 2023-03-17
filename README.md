@@ -24,6 +24,7 @@ JSON serializers for Ruby, built on top of the powerful [`oj`][oj] library.
 [design]: https://github.com/ElMassimo/oj_serializers#design-
 [raw_json]: https://github.com/ohler55/oj/issues/542
 [trailing_commas]: https://maximomussini.com/posts/trailing-commas/
+[render dsl]: https://github.com/ElMassimo/oj_serializers#render-dsl-
 
 ## Why? 🤔
 
@@ -38,7 +39,7 @@ Learn more about [how this library achieves its performance][design].
 
 - Declaration syntax similar to Active Model Serializers
 - Reduced memory allocation and [improved performance][benchmarks]
-- Support for `has_one` and `has_many`, compose with `flat_one`
+- Support for `has_one` and `has_many`; compose with `flat_one`
 - Useful development checks to avoid typos and mistakes
 - Integrates nicely with Rails controllers
 - Caching
@@ -396,6 +397,88 @@ private
 end
 ```
 
+### Render to Hash
+
+In cases where you need objects instead of a JSON string, you can use `render_as_hash`:
+
+```ruby
+album = Album.find(params[:id])
+AlbumSerializer.render_as_hash(album)
+# {name: "Abraxas", genres: ["Pyschodelic Rock", "Blues Rock", ...
+
+albums = Album.all
+PersonSerializer.render_as_hash(albums)
+# [{name: "Abraxas", genres: ["Pyschodelic Rock", "Blues Rock", ...
+```
+
+<details>
+  <summary>Example Output</summary>
+
+```ruby
+{
+  name: "Abraxas",
+  genres: [
+    "Pyschodelic Rock",
+    "Blues Rock",
+    "Jazz Fusion",
+    "Latin Rock",
+  ],
+  release: "September 23, 1970",
+  songs: [
+    {
+      track: 1,
+      name: "Sing Winds, Crying Beasts",
+      composers: ["Michael Carabello"],
+    },
+    {
+      track: 2,
+      name: "Black Magic Woman / Gypsy Queen",
+      composers: ["Peter Green", "Gábor Szabó"],
+    },
+    {
+      track: 3,
+      name: "Oye como va",
+      composers: ["Tito Puente"],
+    },
+    {
+      track: 4,
+      name: "Incident at Neshabur",
+      composers: ["Alberto Gianquinto", "Carlos Santana"],
+    },
+    {
+      track: 5,
+      name: "Se acabó",
+      composers: ["José Areas"],
+    },
+    {
+      track: 6,
+      name: "Mother's Daughter",
+      composers: ["Gregg Rolie"],
+    },
+    {
+      track: 7,
+      name: "Samba pa ti",
+      composers: ["Santana"],
+    },
+    {
+      track: 8,
+      name: "Hope You're Feeling Better",
+      composers: ["Rolie"],
+    },
+    {
+      track: 9,
+      name: "El Nicoya",
+      composers: ["Areas"],
+    },
+  ],
+}
+```
+</details>
+
+Have in mind that building a hash is typically less performant than writing to a
+string directly, as more objects are allocated, so prefer using the [Render DSL]
+whenever possible.
+
 ### Caching 📦
 
 Use `cached` to leverage key-based caching, which calls `cache_key` in the object. You can also provide a lambda to `cached_with_key` to define a custom key:
@@ -415,7 +498,7 @@ Usually serialization happens so fast that __turning caching on can be slower__.
 ## Design 📐
 
 Unlike `ActiveModel::Serializer`, which builds a Hash that then gets encoded to
-JSON, this implementation uses `Oj::StringWriter` to write JSON directly,
+JSON, this implementation can use `Oj::StringWriter` to write JSON directly,
 greatly reducing the overhead of allocating and garbage collecting the hashes.
 
 It also allocates a single instance per serializer class, which makes it easy

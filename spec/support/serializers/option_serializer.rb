@@ -2,6 +2,7 @@
 
 require 'oj_serializers'
 require 'active_model_serializers'
+require 'blueprinter'
 
 module OptionSerializer
   class AMS < ActiveModel::Serializer
@@ -15,6 +16,16 @@ module OptionSerializer
     end
 
     def value
+      object.attributes['_id']
+    end
+  end
+
+  class Blueprinter < Blueprinter::Base
+    field :label do |object|
+      object.attributes['name']
+    end
+
+    field :value do |object|
       object.attributes['_id']
     end
   end

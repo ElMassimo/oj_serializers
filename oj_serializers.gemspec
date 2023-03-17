@@ -30,6 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'active_model_serializers', '~> 0.8'
   spec.add_development_dependency 'activerecord'
   spec.add_development_dependency 'benchmark-ips'
+  spec.add_development_dependency 'blueprinter', '~> 0.8'
   spec.add_development_dependency 'memory_profiler'
   spec.add_development_dependency 'mongoid'
   spec.add_development_dependency 'pry-byebug', '~> 3.9'
