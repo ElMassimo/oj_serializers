@@ -7,10 +7,10 @@ class AlbumSerializer < BaseSerializer
     :genres,
   )
 
-  has_many :songs, serializer: SongSerializer
-
-  attribute \
+  serialize if: -> { album.released? }
   def release
     album.release_date.strftime('%B %d, %Y')
-  end, if: -> { album.released? }
+  end
+
+  has_many :songs, serializer: SongSerializer
 end

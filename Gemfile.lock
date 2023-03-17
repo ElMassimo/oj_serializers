@@ -38,6 +38,8 @@ GEM
       zeitwerk (~> 2.2, >= 2.2.2)
     ast (2.4.1)
     benchmark-ips (2.8.3)
+    benchmark-memory (0.1.2)
+      memory_profiler (~> 0.9)
     blueprinter (0.25.3)
     bson (4.11.1)
     builder (3.2.4)
@@ -149,6 +151,7 @@ DEPENDENCIES
   active_model_serializers (~> 0.8)
   activerecord
   benchmark-ips
+  benchmark-memory
   blueprinter (~> 0.8)
   memory_profiler
   mongoid

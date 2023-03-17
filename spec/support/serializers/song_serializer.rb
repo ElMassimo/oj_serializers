@@ -10,7 +10,7 @@ class SongSerializer < Oj::Serializer
     :name,
   )
 
-  attribute \
+  serialize
   def composers
     song.composer&.split(', ')
   end

@@ -96,16 +96,16 @@ class AlbumSerializer < Oj::Serializer
 
   has_many :songs, serializer: SongSerializer
 
-  attribute \
+  serialize if: -> { album.released? }
   def release
     album.release_date.strftime('%B %d, %Y')
-  end, if: -> { album.released? }
+  end
 end
 ```
 
-The shorthand syntax for serializer attributes might not be very palatable at
-first, but having the entire definition in one place makes it a lot easier to
-follow, specially in large serializers.
+The shorthand syntax for serializer attributes might seem odd at first, but it
+makes it a lot easier to differentiate helper methods from attributes,
+especially in large serializers.
 
 ## Migrate gradually, one at a time
 

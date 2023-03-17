@@ -9,6 +9,10 @@ RSpec.describe 'OptionSerializer', :benchmark do
     end
 
     it 'serializing models' do
+      some = albums.take(1)
+      expect(Oj.dump OptionSerializer::Oj.many(some)).to eq OptionSerializer::Blueprinter.render(some)
+      expect(Oj.dump OptionSerializer::Oj.many(some)).to eq(Oj.dump(some.map { |album| OptionSerializer::AMS.new(album) }))
+
       Benchmark.ips do |x|
         x.config(time: 5, warmup: 2)
         x.report('oj_serializers') do

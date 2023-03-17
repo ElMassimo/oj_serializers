@@ -7,7 +7,7 @@ class SongSerializer < BaseSerializer
     :name,
   )
 
-  attribute \
+  serialize
   def composers
     song.composer&.split(', ')
   end
