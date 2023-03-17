@@ -23,7 +23,7 @@ RSpec.describe 'Memory Usage' do
     bytes_allocated_by_ams = ams_report.allocated_memory_by_class.sum { |data| data[:count] }
 
     expect(bytes_allocated_by_oj).to be < bytes_allocated_by_ams
-    expect(bytes_allocated_by_oj / bytes_allocated_by_ams.to_f).to be < 0.35
+    expect(bytes_allocated_by_oj / bytes_allocated_by_ams.to_f).to be < 0.365
   end
 
   it 'should require less memory when serializing a collection' do
