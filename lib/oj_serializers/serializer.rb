@@ -160,6 +160,17 @@ private
       end
     end
 
+    # Public: Allows to sort fields by name instead.
+    def transform_keys(transformer = nil, &block)
+      @_transform_keys = case (transformer ||= block)
+      when :camelize, :camel_case then ->(key) { key.to_s.camelize(:lower) }
+      when Symbol then transformer.to_proc
+      when Proc then transformer
+      else
+        raise(ArgumentError, "Expected transform_keys to be callable, got: #{transformer.inspect}")
+      end
+    end
+
     # Public: Creates an alias for the internal object.
     def object_as(name, **)
       define_method(name) { @object }
@@ -363,6 +374,14 @@ private
       @_sort_attributes_by
     end
 
+    # Internal: The converter to use for serializer keys.
+    #
+    # This setting is inherited from parent classes.
+    def _transform_keys
+      @_transform_keys = superclass.try(:_transform_keys) unless defined?(@_transform_keys)
+      @_transform_keys
+    end
+
   private
 
     def add_attributes(names, options)
@@ -371,6 +390,12 @@ private
 
     def add_attribute(name, options)
       _attributes[name.to_s.freeze] = options
+    end
+
+    # Internal: Transforms the keys using the provided strategy.
+    def key_for(method_name, options)
+      key = options.fetch(:as, method_name)
+      _transform_keys ? _transform_keys.call(key) : key
     end
 
     # Internal: Whether the object should be serialized as a collection.
@@ -466,20 +491,20 @@ private
     def code_to_write_association(method_name, options)
       # Use a serializer method if defined, else call the association in the object.
       association_method = method_defined?(method_name) ? method_name : "@object.#{method_name}"
-      root = options.fetch(:as, method_name)
+      key = key_for(method_name, options)
       serializer_class = options.fetch(:serializer)
 
       case type = options.fetch(:association)
       when :one
         <<~WRITE_ONE
         if associated_object = #{association_method}
-          writer.push_key('#{root}')
+          writer.push_key('#{key}')
           #{serializer_class}.write_one(writer, associated_object)
         end
         WRITE_ONE
       when :many
         <<~WRITE_MANY
-        writer.push_key('#{root}')
+        writer.push_key('#{key}')
         #{serializer_class}.write_many(writer, #{association_method})
         WRITE_MANY
       when :flat
@@ -512,16 +537,16 @@ private
 
     # Internal: Returns the code for the attribute method.
     def code_to_render_attribute(method_name, options)
-      field_name = options.fetch(:as, method_name)
+      key = key_for(method_name, options)
       case strategy = options.fetch(:attribute)
       when :serializer
-        "#{field_name}: #{method_name}"
+        "#{key}: #{method_name}"
       when :method
-        "#{field_name}: @object.#{method_name}"
+        "#{key}: @object.#{method_name}"
       when :hash
-        "#{field_name}: @object[#{method_name.inspect}]"
+        "#{key}: @object[#{method_name.inspect}]"
       when :mongoid
-        "#{field_name}: @object.attributes['#{method_name}']"
+        "#{key}: @object.attributes['#{method_name}']"
       when :id
         "**(@object.new_record? ? {} : {id: @object.attributes['_id']})"
       else
@@ -533,14 +558,14 @@ private
     def code_to_render_association(method_name, options)
       # Use a serializer method if defined, else call the association in the object.
       association = method_defined?(method_name) ? method_name : "@object.#{method_name}"
-      field_name = options.fetch(:as, method_name)
+      key = key_for(method_name, options)
       serializer_class = options.fetch(:serializer)
 
       case type = options.fetch(:association)
       when :one
-        "#{field_name}: (one_item = #{association}) ? #{serializer_class}.one_as_hash(one_item) : nil"
+        "#{key}: (one_item = #{association}) ? #{serializer_class}.one_as_hash(one_item) : nil"
       when :many
-        "#{field_name}: #{serializer_class}.many_as_hash(#{association})"
+        "#{key}: #{serializer_class}.many_as_hash(#{association})"
       when :flat
         "**#{serializer_class}.one_as_hash(#{association})"
       else

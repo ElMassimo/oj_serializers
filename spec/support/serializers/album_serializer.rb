@@ -3,7 +3,7 @@
 require_relative 'song_serializer'
 
 class AlbumSerializer < Oj::Serializer
-  identifier
+  transform_keys :camelize
 
   mongo_attributes(
     :id,
@@ -16,7 +16,7 @@ class AlbumSerializer < Oj::Serializer
     album.release_date.strftime('%B %d, %Y')
   end
 
-  serialize if: -> { special? }, as: :specials
+  serialize if: -> { special? }, as: :special
   def special?
     memo.fetch(:special) { options[:special] }
   end
