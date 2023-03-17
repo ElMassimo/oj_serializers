@@ -11,6 +11,10 @@ RSpec.describe 'Memory Usage' do
     1000.times.map { Album.abraxas.tap(&:attributes) }
   end
 
+  before do
+    AlbumSerializer.send(:instance)
+  end
+
   it 'should require less memory when serializing an object' do
     oj_report = MemoryProfiler.report { AlbumSerializer.one(album).to_json }
     bytes_allocated_by_oj = oj_report.allocated_memory_by_class.sum { |data| data[:count] }
