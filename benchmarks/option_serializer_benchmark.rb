@@ -27,7 +27,7 @@ RSpec.describe OptionSerializer, category: :benchmark do
           Oj.dump OptionSerializer.map_models(albums)
         end
         x.report('active_model_serializers') do
-          Oj.dump albums.map { |album| OptionSerializer::AMS.new(album) }
+          Oj.dump(albums.map { |album| OptionSerializer::AMS.new(album) })
         end
         x.compare!
       end

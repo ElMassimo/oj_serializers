@@ -22,7 +22,7 @@ RSpec.describe ModelSerializer, category: :benchmark do
           Oj.dump ModelSerializer.many(albums)
         end
         x.report('active_model_serializers') do
-          Oj.dump albums.map { |album| ActiveModelSerializer.new(album) }
+          Oj.dump(albums.map { |album| ActiveModelSerializer.new(album) })
         end
         x.compare!
       end
