@@ -19,16 +19,10 @@ RSpec.describe ModelSerializer, category: :benchmark do
       Benchmark.ips do |x|
         x.config(time: 5, warmup: 2)
         x.report('oj_serializers') do
-          ModelSerializer.many(albums).to_json
+          Oj.dump ModelSerializer.many(albums)
         end
         x.report('active_model_serializers') do
-          albums.map { |album| ActiveModelSerializer.new(album) }.to_json
-        end
-        x.report('oj_serializers (encoder)') do
-          OjSerializers::JsonStringEncoder.encode_to_json(albums, each_serializer: ModelSerializer)
-        end
-        x.report('active_model_serializers (encoder)') do
-          OjSerializers::JsonStringEncoder.encode_to_json(albums, each_serializer: ActiveModelSerializer)
+          Oj.dump albums.map { |album| ActiveModelSerializer.new(album) }
         end
         x.compare!
       end

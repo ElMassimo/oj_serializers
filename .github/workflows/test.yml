@@ -27,6 +27,10 @@ jobs:
             experimental: false
           - ruby: "3.2"
             os: ubuntu-latest
+            gemfile: Gemfile-rails.7.0.x
+            experimental: false
+          - ruby: "3.2"
+            os: ubuntu-latest
             gemfile: Gemfile-rails-edge
             experimental: true
 
