@@ -30,6 +30,9 @@ Style/ClassAndModuleChildren:
 Style/BlockDelimiters:
   Enabled: false
 
+Style/MutableConstant:
+  Enabled: false
+
 Layout/AccessModifierIndentation:
   Enabled: true
   EnforcedStyle: outdent

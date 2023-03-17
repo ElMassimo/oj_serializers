@@ -24,7 +24,18 @@ Gem::Specification.new do |spec|
 
   rails_versions = '>= 4.0'
 
-  spec.add_dependency 'oj', '>= 3.8.0'
+  spec.add_dependency 'oj', '>= 3.14.0'
   spec.add_development_dependency 'actionpack', rails_versions
   spec.add_development_dependency 'railties', rails_versions
+
+  spec.add_development_dependency 'rspec-rails'
+  spec.add_development_dependency 'active_model_serializers', '~> 0.8'
+  spec.add_development_dependency 'pry-byebug', '~> 3.9'
+  spec.add_development_dependency 'rake', '~> 13.0'
+  spec.add_development_dependency 'simplecov', '< 0.18'
+  spec.add_development_dependency 'activerecord'
+  spec.add_development_dependency 'mongoid'
+  spec.add_development_dependency 'sqlite3'
+  spec.add_development_dependency 'benchmark-ips'
+  spec.add_development_dependency 'memory_profiler'
 end

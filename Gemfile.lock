@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     oj_serializers (1.0.2)
-      oj (>= 3.8.0)
+      oj (>= 3.14.0)
 
 GEM
   remote: https://rubygems.org/
@@ -58,15 +58,13 @@ GEM
       nokogiri (>= 1.5.9)
     memory_profiler (0.9.14)
     method_source (1.0.0)
-    mini_portile2 (2.8.1)
-    minitest (5.14.2)
+    minitest (5.18.0)
     mongo (2.13.1)
       bson (>= 4.8.2, < 5.0.0)
     mongoid (7.1.4)
       activemodel (>= 5.1, < 6.1)
       mongo (>= 2.7.0, < 3.0.0)
-    nokogiri (1.14.2)
-      mini_portile2 (~> 2.8.0)
+    nokogiri (1.14.2-arm64-darwin)
       racc (~> 1.4)
     oj (3.14.2)
     parallel (1.19.2)
@@ -97,10 +95,6 @@ GEM
     rake (13.0.6)
     regexp_parser (1.7.1)
     rexml (3.2.4)
-    rspec (3.9.0)
-      rspec-core (~> 3.9.0)
-      rspec-expectations (~> 3.9.0)
-      rspec-mocks (~> 3.9.0)
     rspec-core (3.9.3)
       rspec-support (~> 3.9.3)
     rspec-expectations (3.9.3)
@@ -144,7 +138,7 @@ GEM
     zeitwerk (2.4.1)
 
 PLATFORMS
-  ruby
+  arm64-darwin-21
 
 DEPENDENCIES
   actionpack (>= 4.0)
@@ -154,10 +148,9 @@ DEPENDENCIES
   memory_profiler
   mongoid
   oj_serializers!
-  pry-byebug
+  pry-byebug (~> 3.9)
   railties (>= 4.0)
-  rake (~> 13)
-  rspec (~> 3.0)
+  rake (~> 13.0)
   rspec-rails
   rubocop
   simplecov (< 0.18)
