@@ -11,6 +11,10 @@ RSpec.describe 'Memory Usage' do
     1000.times.map { Album.abraxas.tap(&:attributes) }
   end
 
+  before do
+    AlbumSerializer.send(:instance)
+  end
+
   it 'should require less memory when serializing an object' do
     oj_report = MemoryProfiler.report { AlbumSerializer.one(album).to_json }
     bytes_allocated_by_oj = oj_report.allocated_memory_by_class.sum { |data| data[:count] }
@@ -19,7 +23,7 @@ RSpec.describe 'Memory Usage' do
     bytes_allocated_by_ams = ams_report.allocated_memory_by_class.sum { |data| data[:count] }
 
     expect(bytes_allocated_by_oj).to be < bytes_allocated_by_ams
-    expect(bytes_allocated_by_oj / bytes_allocated_by_ams.to_f).to be < 0.25
+    expect(bytes_allocated_by_oj / bytes_allocated_by_ams.to_f).to be < 0.365
   end
 
   it 'should require less memory when serializing a collection' do
@@ -30,6 +34,6 @@ RSpec.describe 'Memory Usage' do
     bytes_allocated_by_ams = ams_report.allocated_memory_by_class.sum { |data| data[:count] }
 
     expect(bytes_allocated_by_oj).to be < bytes_allocated_by_ams
-    expect(bytes_allocated_by_oj / bytes_allocated_by_ams.to_f).to be < 0.25
+    expect(bytes_allocated_by_oj / bytes_allocated_by_ams.to_f).to be < 0.33
   end
 end

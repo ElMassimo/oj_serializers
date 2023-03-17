@@ -20,10 +20,10 @@ module OjSerializers::ControllerSerialization
   #
   # which is more performant.
   %i[_render_option_json _render_with_renderer_json].each do |renderer_method|
-    define_method renderer_method do |resource, **options|
+    define_method renderer_method do |resource, options = {}|
       serializer_class = options[:serializer] || options[:each_serializer]
       if serializer_class && serializer_class < OjSerializers::Serializer
-        super(OjSerializers::JsonStringEncoder.encode_to_json(resource, options), options.except(:root, :serializer, :each_serializer))
+        super(OjSerializers::JsonStringEncoder.encode_to_json(resource, **options), options.except(:root, :serializer, :each_serializer))
       else
         super(resource, **options)
       end

@@ -11,12 +11,12 @@ class CustomValue
 end
 
 RSpec.describe OjSerializers::JsonStringEncoder, type: :serializer do
-  def expect_encoded_json(*args)
-    expect(OjSerializers::JsonStringEncoder.encode_to_json(*args).tr("\n", ''))
+  def expect_encoded_json(object, options = {})
+    expect(OjSerializers::JsonStringEncoder.encode_to_json(object, **options).tr("\n", ''))
   end
 
-  def expect_incorrect_usage(*args)
-    expect { OjSerializers::JsonStringEncoder.encode_to_json(*args) }
+  def expect_incorrect_usage(object, options = {})
+    expect { OjSerializers::JsonStringEncoder.encode_to_json(object, **options) }
   end
 
   let(:hash) { { a: 1, b: '2', c: nil, d: false, e: BSON::ObjectId.new, f: CustomValue.new } }
