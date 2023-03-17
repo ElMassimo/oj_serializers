@@ -19,7 +19,7 @@ require 'oj_serializers/json_value'
 class OjSerializers::Serializer
   # Public: Used to validate incorrect memoization during development. Users of
   # this library might add additional options as needed.
-  ALLOWED_INSTANCE_VARIABLES = %w[memo object]
+  ALLOWED_INSTANCE_VARIABLES = %w[memo object options]
 
   CACHE = (defined?(Rails) && Rails.cache) ||
           (defined?(ActiveSupport::Cache::MemoryStore) ? ActiveSupport::Cache::MemoryStore.new : OjSerializers::Memo.new)
@@ -35,31 +35,13 @@ class OjSerializers::Serializer
   # Backwards Compatibility: Allows to access options passed through `render json`,
   # in the same way than ActiveModel::Serializers.
   def options
-    @object.try(:options) || DEFAULT_OPTIONS
-  end
-
-  # Internal: Used internally to write attributes and associations to JSON.
-  #
-  # NOTE: Binds this instance to the specified object and options and writes
-  # to json using the provided writer.
-  def write_flat(writer, item)
-    @memo.clear if defined?(@memo)
-    @object = item
-    write_to_json(writer)
-  end
-
-  # Internal: Binds this instance to the specified object and options and writes
-  # to json using the provided writer.
-  def bind_object(item, options = nil)
-    item.define_singleton_method(:options) { options } if options
-    @memo.clear if defined?(@memo)
-    @object = item
+    @options || DEFAULT_OPTIONS
   end
 
   # NOTE: Helps developers to remember to keep serializers stateless.
   if DEV_MODE
     prepend(Module.new do
-      def write_flat(writer, item)
+      def write_to_json(writer, item, options = nil)
         super.tap do
           if instance_values.keys.any? { |key| !ALLOWED_INSTANCE_VARIABLES.include?(key) }
             bad_keys = instance_values.keys.reject { |key| ALLOWED_INSTANCE_VARIABLES.include?(key) }
@@ -68,7 +50,7 @@ class OjSerializers::Serializer
         end
       end
 
-      def bind_object(item, options = nil)
+      def render_as_hash(item, options = nil)
         super.tap do
           if instance_values.keys.any? { |key| !ALLOWED_INSTANCE_VARIABLES.include?(key) }
             bad_keys = instance_values.keys.reject { |key| ALLOWED_INSTANCE_VARIABLES.include?(key) }
@@ -88,9 +70,8 @@ class OjSerializers::Serializer
   # NOTE: Binds this instance to the specified object and options and writes
   # to json using the provided writer.
   def write_one(writer, item, options = nil)
-    item.define_singleton_method(:options) { options } if options
     writer.push_object
-    write_flat(writer, item)
+    write_to_json(writer, item, options)
     writer.pop
   end
 
@@ -157,7 +138,7 @@ private
 
     # Internal: Delegates to the instance methods, the advantage is that we can
     # reuse the same serializer instance to serialize different objects.
-    delegate :write_one, :write_many, :write_flat, to: :instance
+    delegate :write_one, :write_many, :write_to_json, to: :instance
 
     # Helper: Serializes one or more items.
     def render(item, options = nil)
@@ -392,7 +373,10 @@ private
     def code_to_write_to_json
       <<~WRITE_TO_JSON
         # Public: Writes this serializer content to a provided Oj::StringWriter.
-        def write_to_json(writer)
+        def write_to_json(writer, item, options = nil)
+          @object = item
+          @options = options
+          @memo.clear if defined?(@memo)
           #{ _attributes.map { |method_name, options|
             code_to_write_conditional(method_name, options) {
               if options[:association]
@@ -416,7 +400,9 @@ private
       <<~RENDER_AS_HASH
         # Public: Writes this serializer content to a Hash.
         def render_as_hash(item, options = nil)
-          bind_object(item, options)
+          @object = item
+          @options = options
+          @memo.clear if defined?(@memo)
           {
             #{_attributes.map { |method_name, options|
               code_to_render_conditionally(method_name, options) {
@@ -515,7 +501,7 @@ private
         WRITE_MANY
       when :flat
         <<~WRITE_FLAT
-          #{serializer_class}.write_flat(writer, #{association_method})
+          #{serializer_class}.write_to_json(writer, #{association_method})
         WRITE_FLAT
       else
         raise ArgumentError, "Unknown association type: #{type.inspect}"
