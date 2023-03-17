@@ -12,7 +12,7 @@ $LOAD_PATH.unshift Pathname.new(__dir__).join('../spec')
 Dir[Pathname.new(__dir__).join('../spec/support/**/*.rb')].sort.each { |f| require f }
 
 def check
-  puts AlbumSerializer.send(:render_as_hash_body)
+  puts AlbumSerializer.send(:code_to_render_as_hash)
 end
 
 def axs
