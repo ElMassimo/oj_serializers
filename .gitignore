@@ -6,6 +6,7 @@
 /pkg/
 /spec/reports/
 /tmp/
+/benchmark/flamegraphs/
 
 # rspec failure tracking
 .rspec_status

@@ -92,7 +92,7 @@ protected
 
   # Internal: An internal cache that can be used for temporary memoization.
   def memo
-    defined?(@memo) ? @memo : @memo = OjSerializers::Memo.new
+    @memo ||= OjSerializers::Memo.new
   end
 
 private
@@ -198,7 +198,8 @@ private
     #
     # Returns an Array of Hash, each with the attributes specified in the serializer.
     def many_as_hash(items, options = nil)
-      items.map { |item| instance.render_as_hash(item, options) }
+      serializer = instance
+      items.map { |item| serializer.render_as_hash(item, options) }
     end
 
     # Internal: Will alias the object according to the name of the wrapper class.
@@ -212,8 +213,7 @@ private
     #
     # Any attributes defined in parent classes are inherited.
     def _attributes
-      @_attributes = superclass.try(:_attributes)&.dup || {} unless defined?(@_attributes)
-      @_attributes
+      @_attributes ||= superclass.try(:_attributes)&.dup || {}
     end
 
   protected
@@ -577,13 +577,12 @@ private
 
     # Internal: Cache key to set a thread-local instance.
     def instance_key
-      unless defined?(@instance_key)
-        @instance_key = "#{name.underscore}_instance_#{object_id}".to_sym
+      @instance_key ||= begin
         # We take advantage of the fact that this method will always be called
         # before instantiating a serializer, to apply last minute adjustments.
         _prepare_serializer
+        "#{name.underscore}_instance_#{object_id}".to_sym
       end
-      @instance_key
     end
 
     # Internal: Generates write_to_json and render_as_hash methods optimized for

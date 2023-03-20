@@ -13,3 +13,6 @@ require 'active_support/json'
 require 'oj_serializers/compat'
 
 Dir[Pathname.new(__dir__).join('support/**/*.rb')].sort.each { |f| require f }
+
+require 'singed'
+Singed.output_directory = "benchmarks/flamegraphs"
