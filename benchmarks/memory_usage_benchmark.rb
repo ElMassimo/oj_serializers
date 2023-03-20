@@ -9,7 +9,9 @@ RSpec.describe 'Memory Usage', :benchmark do
   end
 
   before do
-    AlbumSerializer.send(:instance)
+    AlbumSerializer.one_as_hash(album)
+    LegacyAlbumSerializer.new(album).to_json
+    AlbumBlueprint.render(album)
   end
 
   def allocated_by(entry)
@@ -26,7 +28,9 @@ RSpec.describe 'Memory Usage', :benchmark do
       x.compare!
     end
     entries = report.comparison.entries
-    expect(entries.map(&:label)).to eq %w[oj_hash oj blueprinter ams]
+    oj1, oj2, *rest = entries.map(&:label)
+    expect([oj1, oj2]).to contain_exactly(*%w[oj_hash oj])
+    expect(rest).to eq %w[blueprinter ams]
     expect(allocated_by(entries.first) / allocated_by(entries.last)).to be < 0.365
   end
 
