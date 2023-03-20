@@ -40,25 +40,12 @@ class OjSerializers::Serializer
 
   # NOTE: Helps developers to remember to keep serializers stateless.
   if DEV_MODE
-    prepend(Module.new do
-      def write_to_json(writer, item, options = nil)
-        super.tap do
-          if instance_values.keys.any? { |key| !ALLOWED_INSTANCE_VARIABLES.include?(key) }
-            bad_keys = instance_values.keys.reject { |key| ALLOWED_INSTANCE_VARIABLES.include?(key) }
-            raise ArgumentError, "Serializer instances are reused so they must be stateless. Use `memo.fetch` for memoization purposes instead. Bad keys: #{bad_keys.join(',')}"
-          end
-        end
+    def _check_instance_variables
+      if instance_values.keys.any? { |key| !ALLOWED_INSTANCE_VARIABLES.include?(key) }
+        bad_keys = instance_values.keys.reject { |key| ALLOWED_INSTANCE_VARIABLES.include?(key) }
+        raise ArgumentError, "Serializer instances are reused so they must be stateless. Use `memo.fetch` for memoization purposes instead. Bad keys: #{bad_keys.join(',')}"
       end
-
-      def render_as_hash(item, options = nil)
-        super.tap do
-          if instance_values.keys.any? { |key| !ALLOWED_INSTANCE_VARIABLES.include?(key) }
-            bad_keys = instance_values.keys.reject { |key| ALLOWED_INSTANCE_VARIABLES.include?(key) }
-            raise ArgumentError, "Serializer instances are reused so they must be stateless. Use `memo.fetch` for memoization purposes instead. Bad keys: #{bad_keys.join(',')}"
-          end
-        end
-      end
-    end)
+    end
   end
 
   # Internal: Used internally to write a single object to JSON.
@@ -430,6 +417,8 @@ private
           else
             raise e
           end
+        ensure
+          _check_instance_variables
       RESCUE_NO_METHOD
     end
 
