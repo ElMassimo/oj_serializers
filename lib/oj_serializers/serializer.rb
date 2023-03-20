@@ -82,8 +82,6 @@ protected
     @memo ||= OjSerializers::Memo.new
   end
 
-private
-
   class << self
     # Public: Allows the user to specify `default_format :json`, as a simple
     # way to ensure that `.one` and `.many` work as in Version 1.

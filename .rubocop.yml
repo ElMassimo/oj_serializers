@@ -78,3 +78,4 @@ Style/Alias:
   Enabled: false
 AllCops:
   NewCops: enable
+  SuggestExtensions: false
