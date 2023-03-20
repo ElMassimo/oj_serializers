@@ -10,7 +10,7 @@ Oj Serializers
 </p>
 </h1>
 
-JSON serializers for Ruby, built on top of the powerful [`oj`][oj] library.
+Faster JSON serializers for Ruby, built on top of the powerful [`oj`][oj] library.
 
 [oj]: https://github.com/ohler55/oj
 [mongoid]: https://github.com/mongodb/mongoid
