@@ -7,7 +7,7 @@ require 'support/serializers/invalid_album_serializer'
 class StatefulSerializer < Oj::Serializer
   hash_attributes 'genre'
 
-  serialize
+  attribute
   def name
     @name ||= @object.name
   end

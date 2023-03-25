@@ -96,7 +96,7 @@ class AlbumSerializer < Oj::Serializer
 
   has_many :songs, serializer: SongSerializer
 
-  serialize if: -> { album.released? }
+  attr if: -> { album.released? }
   def release
     album.release_date.strftime('%B %d, %Y')
   end

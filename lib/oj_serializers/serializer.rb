@@ -261,8 +261,14 @@ protected
 
     # Public: Specify which attributes are going to be obtained by calling a
     # method in the object.
-    def attributes(*method_names, **options)
-      add_attributes(method_names, **options, attribute: :method)
+    def attributes(*method_names, **methods_with_options)
+      attr_options = methods_with_options.extract!(:if, :as)
+      add_attributes(method_names, **attr_options, attribute: :method)
+
+      methods_with_options.each do |name, options|
+        options = {as: options} if options.is_a?(Symbol)
+        add_attribute(name, options)
+      end
     end
     alias_method :attribute, :attributes
 
@@ -277,17 +283,18 @@ protected
     # Syntax Sugar: Allows to use it before a method name.
     #
     # Example:
-    #   serialize
+    #   attribute
     #   def full_name
     #     "#{ first_name } #{ last_name }"
     #   end
-    def serialize(name = nil, **options)
+    def attribute(name = nil, **options)
       if name
         serializer_attributes(name, **options)
       else
         @_current_attribute = options
       end
     end
+    alias_method :attr, :attribute
 
     # Internal: Intercept a method definition, tying a type that was
     # previously specified to the name of the attribute.

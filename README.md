@@ -218,11 +218,11 @@ maintainable.
 
 Obtains the attribute value by calling a method defined in the serializer.
 
-Simply call `serialize` right before defining the method, and it will be serialized:
+Simply call `attribute` right before defining the method, and it will be serialized:
 
 ```ruby
 class PlayerSerializer < Oj::Serializer
-  serialize
+  attribute
   def full_name
     "#{player.first_name} #{player.last_name}"
   end
@@ -307,12 +307,12 @@ The associations DSL is essentially a shortcut for defining attributes manually:
 
 ```ruby
 class SongSerializer < SongMetadataSerializer
-  serialize
+  attribute
   def album
     AlbumSerializer.one(song.album)
   end
 
-  serialize
+  attribute
   def composers
     ComposerSerializer.many(song.composers)
   end
@@ -330,7 +330,7 @@ class DiscographySerializer < Oj::Serializer
   object_as :artist
 
   # Now we can use `artist` instead of `object` or `discography`.
-  serialize
+  attribute
   def latest_albums
     artist.albums.desc(:year)
   end
@@ -346,7 +346,7 @@ using a different key:
 class SongSerializer < Oj::Serializer
   has_one :album, as: :latest_album, serializer: AlbumSerializer
 
-  attribute :title, as: :name
+  attributes title: {as: :name}
 end
 ```
 
@@ -377,7 +377,7 @@ Use `memo` for memoization and storing temporary information.
 class DownloadSerializer < Oj::Serializer
   attributes :filename, :size
 
-  serialize
+  attribute
   def progress
     "#{ last_event&.progress || 0 }%"
   end

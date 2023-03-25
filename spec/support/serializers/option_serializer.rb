@@ -31,13 +31,11 @@ module OptionSerializer
   end
 
   class Oj < Oj::Serializer
-    serialize
-    def label
+    attr def label
       @object.attributes['name']
     end
 
-    serialize
-    def value
+    attr def value
       @object.attributes['_id']
     end
   end
