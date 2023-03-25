@@ -3,8 +3,22 @@
 require 'oj_serializers'
 require 'active_model_serializers'
 require 'blueprinter'
+require 'panko_serializer'
+require_relative 'alba'
 
 module OptionSerializer
+  class Alba
+    include ::Alba::Resource
+
+    attribute :label do |object|
+      object.attributes['name']
+    end
+
+    attribute :value do |object|
+      object.attributes['_id']
+    end
+  end
+
   class AMS < ActiveModel::Serializer
     attributes(
       :label,
@@ -36,6 +50,18 @@ module OptionSerializer
     end
 
     attr def value
+      @object.attributes['_id']
+    end
+  end
+
+  class Panko < Panko::Serializer
+    attributes(:label, :value)
+
+    def label
+      @object.attributes['name']
+    end
+
+    def value
       @object.attributes['_id']
     end
   end

@@ -27,6 +27,12 @@ RSpec.describe 'OptionSerializer', :benchmark do
         x.report('write_models') do
           Oj.dump OptionSerializer.write_models(albums)
         end
+        x.report('alba') do
+          OptionSerializer::Alba.new(albums).serialize
+        end
+        x.report('panko') do
+          Panko::ArraySerializer.new(albums, each_serializer: OptionSerializer::Panko).to_json
+        end
         x.report('active_model_serializers') do
           Oj.dump(albums.map { |album| OptionSerializer::AMS.new(album) })
         end

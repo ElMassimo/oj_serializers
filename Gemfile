@@ -12,11 +12,13 @@ end
 
 group :development, :test do
   gem 'active_model_serializers', '~> 0.8'
+  gem 'alba'
   gem 'benchmark-ips'
   gem 'benchmark-memory'
   gem 'blueprinter', '~> 0.8'
   gem 'memory_profiler'
   gem 'mongoid'
+  gem 'panko_serializer'
   gem 'pry-byebug', '~> 3.9'
   gem 'rails' unless ENV['NO_RAILS']
   gem 'rake', '~> 13.0'

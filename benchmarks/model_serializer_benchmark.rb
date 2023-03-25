@@ -17,6 +17,12 @@ RSpec.describe 'ModelSerializer', :benchmark do
         x.report('oj_serializers hash') do
           Oj.dump ModelSerializer.many_as_hash(albums)
         end
+        x.report('panko') do
+          Panko::ArraySerializer.new(albums, each_serializer: ModelPanko).to_json
+        end
+        x.report('alba') do
+          ModelAlba.new(albums).serialize
+        end
         x.report('blueprinter') do
           ModelBlueprint.render(albums)
         end
