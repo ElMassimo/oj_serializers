@@ -34,11 +34,11 @@ class GamePanko < Panko::Serializer
   end
 end
 
-Game.prepend Module.new {
+Game.prepend(Module.new {
   def scores
     self
   end
-}
+})
 
 RSpec.describe 'GameSerializer', :benchmark do
   context 'albums' do

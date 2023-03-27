@@ -38,7 +38,7 @@ class AlbumAlba < BaseAlba
   end
 
   attributes :special, if: proc { params[:special] }
-  def special(album)
+  def special(_album)
     params[:special]
   end
 

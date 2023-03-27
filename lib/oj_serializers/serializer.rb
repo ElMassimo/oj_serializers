@@ -266,11 +266,10 @@ protected
       add_attributes(method_names, **attr_options, attribute: :method)
 
       methods_with_options.each do |name, options|
-        options = {as: options} if options.is_a?(Symbol)
+        options = { as: options } if options.is_a?(Symbol)
         add_attribute(name, options)
       end
     end
-    alias_method :attribute, :attributes
 
     # Public: Specify which attributes are going to be obtained by calling a
     # method in the serializer.

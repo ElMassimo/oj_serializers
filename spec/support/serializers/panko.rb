@@ -2,16 +2,15 @@
 
 require 'panko_serializer'
 
-Mongoid::Criteria.prepend Module.new {
-  def track
-  end
-}
+Mongoid::Criteria.prepend(Module.new {
+  def track; end
+})
 
-Album.prepend Module.new {
+Album.prepend(Module.new {
   def other_songs
     []
   end
-}
+})
 
 class SongPanko < Panko::Serializer
   attributes(
@@ -30,9 +29,9 @@ class SongPanko < Panko::Serializer
   end
 
   # NOTE: Panko does not have a way to conditionally not include an attribute.
-  def self.filters_for(context, scope)
+  def self.filters_for(_context, _scope)
     {
-      except: [:id]
+      except: [:id],
     }
   end
 end
@@ -47,7 +46,7 @@ class AlbumPanko < Panko::Serializer
     :name,
     :genres,
     :release,
-    :special
+    :special,
   )
 
   def release
@@ -66,9 +65,9 @@ class AlbumPanko < Panko::Serializer
   end
 
   # NOTE: Panko does not have a way to conditionally not include an attribute.
-  def self.filters_for(context, scope)
+  def self.filters_for(_context, _scope)
     {
-      except: [:id, :other_songs]
+      except: %i[id other_songs],
     }
   end
 end

@@ -4,13 +4,13 @@ require 'benchmark_helper'
 
 RSpec.describe 'AlbumSerializer', :benchmark do
   context 'albums' do
-    before(:all) do |variable|
+    before(:all) do
       album = Album.abraxas
       output = AlbumSerializer.one(album, special: true).to_json
       expect(output).to eq LegacyAlbumSerializer.new(album, special: true).to_json
       expect(output).to eq AlbumBlueprint.render(album, special: true)
       expect(JSON.parse(output)).to eq JSON.parse AlbumPanko.new(context: { special: true }).serialize_to_json(album)
-      expect(JSON.parse(output)).to eq JSON.parse AlbumAlba.new(album, params: {special: true}).serialize
+      expect(JSON.parse(output)).to eq JSON.parse AlbumAlba.new(album, params: { special: true }).serialize
     end
 
     it 'serializing a model' do
