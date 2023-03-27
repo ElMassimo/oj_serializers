@@ -199,7 +199,7 @@ protected
     # Internal: Will alias the object according to the name of the wrapper class.
     def inherited(subclass)
       object_alias = subclass.name.demodulize.chomp('Serializer').underscore
-      subclass.object_as(object_alias) unless method_defined?(object_alias) || object_alias == "base"
+      subclass.object_as(object_alias) unless method_defined?(object_alias) || object_alias == 'base'
       super
     end
 
