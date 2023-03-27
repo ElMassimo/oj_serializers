@@ -40,7 +40,7 @@ Learn more about [how this library achieves its performance][design].
 ## Features ⚡️
 
 - Declaration syntax similar to Active Model Serializers
-- Reduced memory allocation and [improved performance][benchmarks]
+- Reduced [memory allocation][benchmarks] and [improved performance][benchmarks]
 - Support for `has_one` and `has_many`, compose with `flat_one`
 - Useful development checks to avoid typos and mistakes
 - Integrates nicely with Rails controllers
@@ -66,7 +66,7 @@ attributes should be serialized.
 class AlbumSerializer < Oj::Serializer
   attributes :name, :genres
 
-  serialize
+  attr
   def release
     album.release_date.strftime('%B %d, %Y')
   end
@@ -391,6 +391,29 @@ private
   end
 end
 ```
+### Caching 📦
+
+Use `cached` to leverage key-based caching, which calls `cache_key` in the object.
+
+You can also provide a lambda to `cached_with_key` to define a custom key:
+
+```ruby
+class CachedUserSerializer < UserSerializer
+  cached_with_key ->(user) {
+    "#{ user.id }/#{ user.current_sign_in_at }"
+  }
+end
+```
+
+It will leverage `fetch_multi` when serializing a collection with `many` or
+`has_many`, to minimize the amount of round trips needed to read and write all
+items to cache.
+
+This works specially well if your cache store also supports `write_multi`.
+
+Usually serialization happens so fast that __turning caching on can be slower__.
+Always benchmark to make sure it's worth it, and use caching only for
+time-consuming or deeply nested structures with unpredictable query patterns.
 
 ### Writing directly to JSON
 
@@ -518,6 +541,13 @@ mixins must be applied to the class itself.
 
 As a result, migrating from `active_model_serializers` is relatively
 straightforward because instance methods, inheritance, and mixins work as usual.
+
+### Benchmarks 📊
+
+This library includes some [benchmarks] to compare performance with similar libraries.
+
+See [this pull request](https://github.com/ElMassimo/oj_serializers/pull/9) for a quick comparison,
+or check the CI to see the latest results.
 
 ## Formatting 📏
 
