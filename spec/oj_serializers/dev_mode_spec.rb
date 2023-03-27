@@ -26,7 +26,7 @@ RSpec.describe 'Development Mode', type: :serializer do
 
   it 'should fail early when memoization is used incorrectly' do
     expect { StatefulSerializer.many([album, album]) }
-      .to raise_error(ArgumentError, 'Serializer instances are reused so they must be stateless. Use `memo.fetch` for memoization purposes instead. Bad keys: name')
+      .to raise_error(ArgumentError, 'Serializer instances are reused so they must be stateless. Use `memo.fetch` for memoization purposes instead. Bad keys: name in StatefulSerializer')
   end
 
   it 'should fail early when `attributes` is used instead of `serializer_attributes`' do

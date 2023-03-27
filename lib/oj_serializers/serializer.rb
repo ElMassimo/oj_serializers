@@ -43,7 +43,7 @@ class OjSerializers::Serializer
     def _check_instance_variables
       if instance_values.keys.any? { |key| !ALLOWED_INSTANCE_VARIABLES.include?(key) }
         bad_keys = instance_values.keys.reject { |key| ALLOWED_INSTANCE_VARIABLES.include?(key) }
-        raise ArgumentError, "Serializer instances are reused so they must be stateless. Use `memo.fetch` for memoization purposes instead. Bad keys: #{bad_keys.join(',')}"
+        raise ArgumentError, "Serializer instances are reused so they must be stateless. Use `memo.fetch` for memoization purposes instead. Bad keys: #{bad_keys.join(',')} in #{self.class}"
       end
     end
   end
@@ -532,7 +532,7 @@ protected
     # Internal: Detects any include methods defined in the serializer, or defines
     # one by using the lambda passed in the `if` option, if any.
     def check_conditional_method(method_name, options)
-      include_method_name = "include_#{method_name}#{'?' unless method_name.ends_with?('?')}"
+      include_method_name = "include_#{method_name}#{'?' unless method_name.to_s.ends_with?('?')}"
       if render_if = options[:if]
         if render_if.is_a?(Symbol)
           alias_method(include_method_name, render_if)

@@ -239,8 +239,7 @@ In case you need to pass options, you can call the serializer manually:
 
 ```ruby
 class SongSerializer < Oj::Serializer
-  attribute
-  def album
+  attribute :album do
     AlbumSerializer.one(song.album, for_song: song)
   end
 end
@@ -368,7 +367,7 @@ One slight variation that might make it easier to maintain in the long term is
 to use a separate singleton service to provide the url helpers and options, and
 make it available as `urls`.
 
-### Memoization & Local State
+### Memoization & local state
 
 Serializers are designed to be stateless so that an instanced can be reused, but
 sometimes it's convenient to store intermediate calculations.
@@ -404,7 +403,7 @@ class PersonSerializer < Oj::Serializer
 end
 
 PersonSerializer.one('first_name' => 'Mary', :middle_name => 'Jane', :last_name => 'Watson')
-# {"first_name":"Mary","last_name":"Watson"}
+# {first_name: "Mary", last_name: "Watson"}
 ```
 
 ### `mongo_attributes` 🚀
@@ -463,12 +462,17 @@ Alternatively, you can toggle this mode at a serializer level by using
 
 ```ruby
 class BaseSerializer < Oj::Serializer
-  default_format :json # :hash is the default
+  default_format :json
 end
 ```
 
 This will change the default shortcuts (`render`, `one`, `one_if`, and `many`),
 so that the serializer writes directly to JSON instead of returning a Hash.
+
+> **Note**
+>
+> This was the default behavior in `oj_serializers` v1, but was replaced with
+`default_format :hash` in v2.
 
 <details>
   <summary>Example Output</summary>
@@ -554,6 +558,8 @@ so that the serializer writes directly to JSON instead of returning a Hash.
 ```
 </details>
 
+Even when using this mode, you can still use rendered values inside arrays,
+hashes, and other serializers, thanks to [the `raw_json` extensions][raw_json].
 
 ## Design 📐
 
