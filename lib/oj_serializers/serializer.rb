@@ -86,7 +86,8 @@ protected
     # Public: Allows the user to specify `default_format :json`, as a simple
     # way to ensure that `.one` and `.many` work as in Version 1.
     def default_format(value)
-      define_serialization_shortcuts(value)
+      @_default_format = value
+      define_serialization_shortcuts
     end
 
     # Public: Allows to sort fields by name instead.
@@ -124,6 +125,14 @@ protected
     # Internal: Delegates to the instance methods, the advantage is that we can
     # reuse the same serializer instance to serialize different objects.
     delegate :write_one, :write_many, :write_to_json, to: :instance
+
+    # Internal: Keep a reference to the default `write_one` method so that we
+    # can use it inside cached overrides and benchmark tests.
+    alias_method :non_cached_write_one, :write_one
+
+    # Internal: Keep a reference to the default `write_many` method so that we
+    # can use it inside cached overrides and benchmark tests.
+    alias_method :non_cached_write_many, :write_many
 
     # Helper: Serializes one or more items.
     def render(item, options = nil)
@@ -203,7 +212,88 @@ protected
 
   protected
 
-    def define_serialization_shortcuts(format)
+    # Internal: Calculates the cache_key used to cache one serialized item.
+    def item_cache_key(item, cache_key_proc)
+      ActiveSupport::Cache.expand_cache_key(cache_key_proc.call(item))
+    end
+
+    # Public: Allows to define a cache key strategy for the serializer.
+    # Defaults to calling cache_key in the object if no key is provided.
+    #
+    # NOTE: Benchmark it, sometimes caching is actually SLOWER.
+    def cached(cache_key_proc = :cache_key.to_proc)
+      cache_options = { namespace: "#{name}#write_to_json", version: OjSerializers::VERSION }.freeze
+      cache_hash_options = { namespace: "#{name}#render_as_hash", version: OjSerializers::VERSION }.freeze
+
+      # Internal: Redefine `one_as_hash` to use the cache for the serialized hash.
+      define_singleton_method(:one_as_hash) do |item, options = nil|
+        CACHE.fetch(item_cache_key(item, cache_key_proc), cache_hash_options) do
+          instance.render_as_hash(item, options)
+        end
+      end
+
+      # Internal: Redefine `many_as_hash` to use the cache for the serialized hash.
+      define_singleton_method(:many_as_hash) do |items, options = nil|
+        # We define a one-off method for the class to receive the entire object
+        # inside the `fetch_multi` block. Otherwise we would only get the cache
+        # key, and we would need to build a Hash to retrieve the object.
+        #
+        # NOTE: The assignment is important, as queries would return different
+        # objects when expanding with the splat in fetch_multi.
+        items = items.entries.each do |item|
+          item_key = item_cache_key(item, cache_key_proc)
+          item.define_singleton_method(:cache_key) { item_key }
+        end
+
+        # Fetch all items at once by leveraging `read_multi`.
+        #
+        # NOTE: Memcached does not support `write_multi`, if we switch the cache
+        # store to use Redis performance would improve a lot for this case.
+        cached_items = CACHE.fetch_multi(*items, cache_hash_options) do |item|
+          instance.render_as_hash(item, options)
+        end.values
+      end
+
+      # Internal: Redefine `write_one` to use the cache for the serialized JSON.
+      define_singleton_method(:write_one) do |external_writer, item, options = nil|
+        cached_item = CACHE.fetch(item_cache_key(item, cache_key_proc), cache_options) do
+          writer = new_json_writer
+          non_cached_write_one(writer, item, options)
+          writer.to_json
+        end
+        external_writer.push_json("#{cached_item}\n") # Oj.dump expects a new line terminator.
+      end
+
+      # Internal: Redefine `write_many` to use fetch_multi from cache.
+      define_singleton_method(:write_many) do |external_writer, items, options = nil|
+        # We define a one-off method for the class to receive the entire object
+        # inside the `fetch_multi` block. Otherwise we would only get the cache
+        # key, and we would need to build a Hash to retrieve the object.
+        #
+        # NOTE: The assignment is important, as queries would return different
+        # objects when expanding with the splat in fetch_multi.
+        items = items.entries.each do |item|
+          item_key = item_cache_key(item, cache_key_proc)
+          item.define_singleton_method(:cache_key) { item_key }
+        end
+
+        # Fetch all items at once by leveraging `read_multi`.
+        #
+        # NOTE: Memcached does not support `write_multi`, if we switch the cache
+        # store to use Redis performance would improve a lot for this case.
+        cached_items = CACHE.fetch_multi(*items, cache_options) do |item|
+          writer = new_json_writer
+          non_cached_write_one(writer, item, options)
+          writer.to_json
+        end.values
+        external_writer.push_json("#{OjSerializers::JsonValue.array(cached_items)}\n") # Oj.dump expects a new line terminator.
+      end
+
+      define_serialization_shortcuts
+    end
+    alias_method :cached_with_key, :cached
+
+    def define_serialization_shortcuts(format = _default_format)
       case format
       when :json, :hash
         singleton_class.alias_method :one, :"one_as_#{format}"
@@ -316,6 +406,12 @@ protected
         define_method(method_name) { @object.read_attribute_for_serialization(method_name) } unless method_defined?(method_name)
       end
       add_attributes(method_names, **options, attribute: :serializer)
+    end
+
+    # Internal: The default format to use for `render`, `one`, and `many`.
+    def _default_format
+      @_default_format = superclass.try(:_default_format) || :hash unless defined?(@_default_format)
+      @_default_format
     end
 
     # Internal: The strategy to use when sorting the fields.
@@ -593,7 +689,7 @@ protected
     end
   end
 
-  define_serialization_shortcuts(:hash)
+  define_serialization_shortcuts
 end
 
 Oj::Serializer = OjSerializers::Serializer unless defined?(Oj::Serializer)
