@@ -66,8 +66,7 @@ attributes should be serialized.
 class AlbumSerializer < Oj::Serializer
   attributes :name, :genres
 
-  attr
-  def release
+  attribute :release do
     album.release_date.strftime('%B %d, %Y')
   end
 
