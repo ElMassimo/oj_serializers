@@ -199,7 +199,7 @@ protected
     # Internal: Will alias the object according to the name of the wrapper class.
     def inherited(subclass)
       object_alias = subclass.name.demodulize.chomp('Serializer').underscore
-      subclass.object_as(object_alias) unless method_defined?(object_alias)
+      subclass.object_as(object_alias) unless method_defined?(object_alias) || object_alias == "base"
       super
     end
 
@@ -249,7 +249,7 @@ protected
         #
         # NOTE: Memcached does not support `write_multi`, if we switch the cache
         # store to use Redis performance would improve a lot for this case.
-        cached_items = CACHE.fetch_multi(*items, cache_hash_options) do |item|
+        CACHE.fetch_multi(*items, cache_hash_options) do |item|
           instance.render_as_hash(item, options)
         end.values
       end
@@ -309,18 +309,23 @@ protected
     end
 
     # Public: Identifiers are always serialized first.
+    #
+    # NOTE: We skip the id for non-persisted documents, since it doesn't
+    # actually identify the document (it will change once it's persisted).
     def identifier(name = :id, **options)
-      add_attribute(name, **options, attribute: :method, identifier: true, if: -> { !@object.new_record? })
+      add_attribute(name, attribute: :method, if: -> { !@object.new_record? }, **options, identifier: true)
     end
 
     # Public: Specify a collection of objects that should be serialized using
     # the specified serializer.
-    def has_many(name, serializer:, root: name, as: root, **options)
+    def has_many(name, serializer:, root: name, as: root, **options, &block)
+      define_method(name, &block) if block
       add_attribute(name, association: :many, as: as, serializer: serializer, **options)
     end
 
     # Public: Specify an object that should be serialized using the serializer.
-    def has_one(name, serializer:, root: name, as: root, **options)
+    def has_one(name, serializer:, root: name, as: root, **options, &block)
+      define_method(name, &block) if block
       add_attribute(name, association: :one, as: as, serializer: serializer, **options)
     end
     # Alias: From a serializer perspective, the association type does not matter.
@@ -347,15 +352,19 @@ protected
     #
     # See ./benchmarks/document_benchmark.rb
     def mongo_attributes(*method_names, **options)
-      add_attribute('id', **options, attribute: :id, identifier: true) if method_names.delete(:id)
-      add_attributes(method_names, **options, attribute: :mongoid)
+      identifier(:_id, as: :id, attribute: :mongoid, **options) if method_names.delete(:id)
+      attributes(*method_names, **options, attribute: :mongoid)
     end
 
     # Public: Specify which attributes are going to be obtained by calling a
     # method in the object.
     def attributes(*method_names, **methods_with_options)
-      attr_options = methods_with_options.extract!(:if, :as)
-      add_attributes(method_names, **attr_options, attribute: :method)
+      attr_options = methods_with_options.extract!(:if, :as, :attribute)
+      attr_options[:attribute] ||= :method
+
+      method_names.each do |name|
+        add_attribute(name, attr_options)
+      end
 
       methods_with_options.each do |name, options|
         options = { as: options } if options.is_a?(Symbol)
@@ -365,10 +374,8 @@ protected
 
     # Public: Specify which attributes are going to be obtained by calling a
     # method in the serializer.
-    #
-    # NOTE: This can be one of the slowest strategies, when in doubt, measure.
     def serializer_attributes(*method_names, **options)
-      add_attributes(method_names, **options, attribute: :serializer)
+      attributes(*method_names, **options, attribute: :serializer)
     end
 
     # Syntax Sugar: Allows to use it before a method name.
@@ -379,10 +386,11 @@ protected
     #     "#{ first_name } #{ last_name }"
     #   end
     def attribute(name = nil, **options)
+      options[:attribute] = :serializer
       if name
-        serializer_attributes(name, **options)
+        add_attribute(name, options)
       else
-        @_current_attribute = options
+        @_current_attribute_options = options
       end
     end
     alias_method :attr, :attribute
@@ -391,9 +399,9 @@ protected
     # previously specified to the name of the attribute.
     def method_added(name)
       super(name)
-      if @_current_attribute
-        serializer_attributes(name, **@_current_attribute)
-        @_current_attribute = nil
+      if @_current_attribute_options
+        add_attribute(name, @_current_attribute_options)
+        @_current_attribute_options = nil
       end
     end
 
@@ -405,7 +413,7 @@ protected
       method_names.each do |method_name|
         define_method(method_name) { @object.read_attribute_for_serialization(method_name) } unless method_defined?(method_name)
       end
-      add_attributes(method_names, **options, attribute: :serializer)
+      attributes(*method_names, **options, attribute: :serializer)
     end
 
     # Internal: The default format to use for `render`, `one`, and `many`.
@@ -431,10 +439,6 @@ protected
     end
 
   private
-
-    def add_attributes(names, options)
-      names.each { |name| add_attribute(name, options) }
-    end
 
     def add_attribute(name, options)
       _attributes[name.to_s.freeze] = options
@@ -524,18 +528,27 @@ protected
       RESCUE_NO_METHOD
     end
 
+    # Internal: Detects any include methods defined in the serializer, or defines
+    # one by using the lambda passed in the `if` option, if any.
+    def check_conditional_method(method_name, options)
+      include_method_name = "include_#{method_name}#{'?' unless method_name.ends_with?('?')}"
+      if render_if = options[:if]
+        if render_if.is_a?(Symbol)
+          alias_method(include_method_name, render_if)
+        else
+          define_method(include_method_name, &render_if)
+        end
+      end
+      include_method_name if method_defined?(include_method_name)
+    end
+
     # Internal: Returns the code to render an attribute or association
     # conditionally.
     #
     # NOTE: Detects any include methods defined in the serializer, or defines
     # one by using the lambda passed in the `if` option, if any.
     def code_to_write_conditional(method_name, options)
-      include_method_name = "include_#{method_name}#{'?' unless method_name.ends_with?('?')}"
-      if render_if = options[:if]
-        define_method(include_method_name, &render_if)
-      end
-
-      if method_defined?(include_method_name)
+      if (include_method_name = check_conditional_method(method_name, options))
         "if #{include_method_name};#{yield};end\n"
       else
         yield
@@ -559,12 +572,6 @@ protected
       when :mongoid
         # Writes an Mongoid attribute to JSON, this is the fastest strategy.
         "writer.push_value(@object.attributes['#{method_name}'], #{key})"
-      when :id
-        # Writes an _id value to JSON using `id` as the key instead.
-        #
-        # NOTE: We skip the id for non-persisted documents, since it doesn't actually
-        # identify the document (it will change once it's persisted).
-        "writer.push_value(@object.attributes['_id'], 'id') unless @object.new_record?"
       else
         raise ArgumentError, "Unknown attribute strategy: #{strategy.inspect}"
       end
@@ -605,13 +612,7 @@ protected
     # NOTE: Detects any include methods defined in the serializer, or defines
     # one by using the lambda passed in the `if` option, if any.
     def code_to_render_conditionally(method_name, options)
-      include_method_name = "include_#{method_name}#{'?' unless method_name.ends_with?('?')}"
-
-      if render_if = options[:if]
-        define_method(include_method_name, &render_if)
-      end
-
-      if method_defined?(include_method_name)
+      if (include_method_name = check_conditional_method(method_name, options))
         "**(#{include_method_name} ? {#{yield}} : {})"
       else
         yield
@@ -630,8 +631,6 @@ protected
         "#{key}: @object[#{method_name.inspect}]"
       when :mongoid
         "#{key}: @object.attributes['#{method_name}']"
-      when :id
-        "**(@object.new_record? ? {} : {id: @object.attributes['_id']})"
       else
         raise ArgumentError, "Unknown attribute strategy: #{strategy.inspect}"
       end
