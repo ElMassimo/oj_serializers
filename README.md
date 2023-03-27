@@ -192,7 +192,11 @@ You can serialize custom values by specifying that a method is an `attribute`:
 
 ```ruby
 class PlayerSerializer < Oj::Serializer
-  attributes :first_name, :last_name, :full_name
+  attribute :name do
+    "#{player.first_name} #{player.last_name}"
+  end
+
+  # or
 
   attribute
   def name
@@ -221,7 +225,7 @@ class SongSerializer < Oj::Serializer
 end
 ```
 
-Provide a different value for the association by providing a block:
+Specify a different value for the association by providing a block:
 
 ```ruby
 class SongSerializer < Oj::Serializer
@@ -258,7 +262,7 @@ class SongSerializer < Oj::Serializer
 end
 ```
 
-### Conditional Attributes ❔
+### Conditional attributes ❔
 
 You can render attributes and associations conditionally by using `:if`.
 
@@ -292,7 +296,7 @@ class DiscographySerializer < Oj::Serializer
 end
 ```
 
-### Identifier Attributes
+### Identifier attributes
 
 The `identifier` method allows you to only include an identifier if the record
 or document has been persisted.
@@ -309,7 +313,7 @@ end
 Additionally, identifier fields are always rendered first, even when sorting
 fields alphabetically.
 
-### Transforming Attribute Keys 🗝
+### Transforming attribute keys 🗝
 
 When serialized data will be consumed from a client language that has different
 naming conventions, it can be convenient to transform keys accordingly.
@@ -330,7 +334,7 @@ end
 
 This has no performance impact, as keys will be transformed at load time.
 
-### Sorting Attributes 📶
+### Sorting attributes 📶
 
 By default attributes are rendered in the order they are defined.
 
@@ -345,7 +349,7 @@ end
 
 This has no performance impact, as attributes will be sorted at load time.
 
-### Path Helpers 🛣
+### Path helpers 🛣
 
 In case you need to access path helpers in your serializers, you can use the
 following:
@@ -420,7 +424,18 @@ end
 
 ### Caching 📦
 
-Use `cached` to leverage key-based caching, which calls `cache_key` in the object.
+Usually rendering is so fast that __turning caching on can be slower__.
+
+However, in cases of deeply nested structures, unpredictable query patterns, or
+methods that take a long time to run, caching can improve performance.
+
+To enable caching, use `cached`, which calls `cache_key` in the object:
+
+```ruby
+class CachedUserSerializer < UserSerializer
+  cached
+end
+```
 
 You can also provide a lambda to `cached_with_key` to define a custom key:
 
@@ -437,10 +452,6 @@ It will leverage `fetch_multi` when serializing a collection with `many` or
 items to cache.
 
 This works specially well if your cache store also supports `write_multi`.
-
-Usually serialization happens so fast that __turning caching on can be slower__.
-Always benchmark to make sure it's worth it, and use caching only for
-time-consuming or deeply nested structures with unpredictable query patterns.
 
 ### Writing to JSON
 
@@ -584,9 +595,9 @@ or check the CI to see the latest results.
 
 ### Migrating from other libraries
 
-This library provides a few different compatibility modes that make it
-easier to migrate from `active_model_serializers` and similar libraries, please
-refer to the [migration guide] for a full discussion.
+Please refer to the [migration guide] for a full discussion of the compatibility
+modes available to make it easier to migrate from `active_model_serializers` and
+similar libraries.
 
 ## Formatting 📏
 

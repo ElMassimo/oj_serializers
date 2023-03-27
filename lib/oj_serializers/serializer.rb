@@ -385,9 +385,10 @@ protected
     #   def full_name
     #     "#{ first_name } #{ last_name }"
     #   end
-    def attribute(name = nil, **options)
+    def attribute(name = nil, **options, &block)
       options[:attribute] = :serializer
       if name
+        define_method(name, &block) if block
         add_attribute(name, options)
       else
         @_current_attribute_options = options
