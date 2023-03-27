@@ -233,6 +233,8 @@ protected
     def has_one(name, serializer:, root: name, as: root, **options)
       add_attribute(name, association: :one, as: as, serializer: serializer, **options)
     end
+    # Alias: From a serializer perspective, the association type does not matter.
+    alias_method :belongs_to, :has_one
 
     # Public: Specify an object that should be serialized using the serializer,
     # but unlike `has_one`, this one will write the attributes directly without
