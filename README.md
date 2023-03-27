@@ -2,7 +2,6 @@
 Oj Serializers
 <p align="center">
 <a href="https://github.com/ElMassimo/oj_serializers/actions"><img alt="Build Status" src="https://github.com/ElMassimo/oj_serializers/workflows/build/badge.svg"/></a>
-<a href="https://inch-ci.org/github/ElMassimo/oj_serializers"><img alt="Inline docs" src="https://inch-ci.org/github/ElMassimo/oj_serializers.svg"/></a>
 <a href="https://codeclimate.com/github/ElMassimo/oj_serializers"><img alt="Maintainability" src="https://codeclimate.com/github/ElMassimo/oj_serializers/badges/gpa.svg"/></a>
 <a href="https://codeclimate.com/github/ElMassimo/oj_serializers"><img alt="Test Coverage" src="https://codeclimate.com/github/ElMassimo/oj_serializers/badges/coverage.svg"/></a>
 <a href="https://rubygems.org/gems/oj_serializers"><img alt="Gem Version" src="https://img.shields.io/gem/v/oj_serializers.svg?colorB=e9573f"/></a>
