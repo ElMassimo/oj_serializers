@@ -14,43 +14,27 @@ module OjSerializers::JsonStringEncoder
     # regardless of whether a serializer is specified or not.
     #
     # Returns a JSON string.
-    def encode_to_json(object, root: nil, serializer: nil, each_serializer: nil, **extras)
-      # NOTE: Serializers may override `new_json_writer` to modify the behavior.
-      writer = (serializer || each_serializer || OjSerializers::Serializer).send(:new_json_writer)
-
-      if root
-        writer.push_object
-        writer.push_key(root.to_s)
-      end
-
-      if serializer
-        serializer.write_one(writer, object, extras)
+    def encode_to_json(object, root: nil, serializer: nil, each_serializer: nil, **options)
+      result = if serializer
+        serializer.one(object, options)
       elsif each_serializer
-        each_serializer.write_many(writer, object, extras)
+        each_serializer.many(object, options)
       elsif object.is_a?(String)
-        return object unless root
-
-        writer.push_json(object)
+        OjSerializers::JsonValue.new(object)
       else
-        writer.push_value(object)
+        object
       end
-
-      writer.pop if root
-
-      writer.to_json
+      Oj.dump(root ? { root => result } : result)
     end
 
     if OjSerializers::Serializer::DEV_MODE
       alias actual_encode_to_json encode_to_json
       # Internal: Allows to detect misusage of the options during development.
-      def encode_to_json(object, root: nil, serializer: nil, each_serializer: nil, **extras)
-        if serializer && serializer < OjSerializers::Serializer
-          raise ArgumentError, 'You must use `each_serializer` when serializing collections' if object.respond_to?(:each)
-        end
-        if each_serializer && each_serializer < OjSerializers::Serializer
-          raise ArgumentError, 'You must use `serializer` when serializing a single object' unless object.respond_to?(:each)
-        end
-        actual_encode_to_json(object, root: root, serializer: serializer, each_serializer: each_serializer, **extras)
+      def encode_to_json(object, root: nil, serializer: nil, each_serializer: nil, **options)
+        raise ArgumentError, 'You must use `each_serializer` when serializing collections' if serializer && serializer < OjSerializers::Serializer && object.respond_to?(:map)
+        raise ArgumentError, 'You must use `serializer` when serializing a single object' if each_serializer && each_serializer < OjSerializers::Serializer && !object.respond_to?(:map)
+
+        actual_encode_to_json(object, root: root, serializer: serializer, each_serializer: each_serializer, **options)
       end
     end
   end

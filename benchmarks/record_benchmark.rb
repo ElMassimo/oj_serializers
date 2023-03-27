@@ -3,7 +3,7 @@
 require 'benchmark_helper'
 require 'support/models/sql'
 
-RSpec.describe 'Record Accessors', category: :benchmark do
+RSpec.describe 'Record Accessors', :benchmark do
   let(:player) { Game.example.players.first }
 
   it 'getters performance' do

@@ -2,15 +2,16 @@
 
 [request_store]: https://github.com/steveklabnik/request_store
 [request_store_rails]: https://github.com/ElMassimo/request_store_rails
-[readme]: https://github.com/ElMassimo/oj_serializers/blob/master/README.md
+[readme]: https://github.com/ElMassimo/oj_serializers/blob/main/README.md
+[attributes dsl]: https://github.com/ElMassimo/oj_serializers/blob/main/README.md#attributes-dsl-
 
 [oj]: https://github.com/ohler55/oj
 [ams]: https://github.com/rails-api/active_model_serializers
 [jsonapi]: https://github.com/jsonapi-serializer/jsonapi-serializer
 [panko]: https://github.com/panko-serializer/panko_serializer
 [benchmarks]: https://github.com/ElMassimo/oj_serializers/tree/master/benchmarks
-[raw_benchmarks]: https://github.com/ElMassimo/oj_serializers/blob/master/benchmarks/document_benchmark.rb
-[migration guide]: https://github.com/ElMassimo/oj_serializers/blob/master/MIGRATION_GUIDE.md
+[raw_benchmarks]: https://github.com/ElMassimo/oj_serializers/blob/main/benchmarks/document_benchmark.rb
+[migration guide]: https://github.com/ElMassimo/oj_serializers/blob/main/MIGRATION_GUIDE.md
 [raw_json]: https://github.com/ohler55/oj/issues/542
 [trailing_commas]: https://maximomussini.com/posts/trailing-commas/
 
@@ -44,9 +45,19 @@ render json: {
 
 ### Attributes
 
-Have in mind that unlike in Active Model Serializers, `attributes` in `Oj::Serializer` will _not_ take into account methods defined in the serializer.
+If you read the [Attributes DSL] section, you might have noticed that you need
+to _explicitly_ tell when a method in the serializer should be used by
+specifying it with `attribute`.
 
-Specially in the beginning, you can replace `attributes` with `ams_attributes` to preserve the same behavior.
+This makes the serializers more predictable and more maintainable, but it can
+make it challenging to migrate from `active_model_serializers`.
+
+Specially in the beginning, you can replace `attributes` with `ams_attributes`
+to preserve the same behavior.
+
+`ams_attributes` works like `attributes` in `active_model_serializers`: by
+calling a method in the serializer if defined, or calling
+`read_attribute_for_serialization` in the model.
 
 ```ruby
 class AlbumSerializer < ActiveModel::Serializer
@@ -96,16 +107,16 @@ class AlbumSerializer < Oj::Serializer
 
   has_many :songs, serializer: SongSerializer
 
-  attribute \
+  attribute if: -> { album.released? }
   def release
     album.release_date.strftime('%B %d, %Y')
-  end, if: -> { album.released? }
+  end
 end
 ```
 
-The shorthand syntax for serializer attributes might not be very palatable at
-first, but having the entire definition in one place makes it a lot easier to
-follow, specially in large serializers.
+The shorthand syntax for serializer attributes might seem odd at first, but it
+makes it a lot easier to differentiate helper methods from attributes,
+especially in large serializers.
 
 ## Migrate gradually, one at a time
 

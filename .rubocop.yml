@@ -40,6 +40,21 @@ Layout/AccessModifierIndentation:
 Layout/CaseIndentation:
   EnforcedStyle: 'end'
 
+Layout/EndAlignment:
+  Enabled: false
+
+Layout/IndentationWidth:
+  Enabled: false
+
+Layout/ElseAlignment:
+  Enabled: false
+
+Naming/MethodParameterName:
+  Enabled: false
+
+Style/GuardClause:
+  Enabled: false
+
 # Disabled to allow the outdented comment style
 Layout/CommentIndentation:
   Enabled: false
@@ -59,3 +74,8 @@ Metrics/ClassLength:
 
 Naming/PredicateName:
   Enabled: false
+Style/Alias:
+  Enabled: false
+AllCops:
+  NewCops: enable
+  SuggestExtensions: false

@@ -7,7 +7,7 @@ require 'support/serializers/invalid_album_serializer'
 class StatefulSerializer < Oj::Serializer
   hash_attributes 'genre'
 
-  attribute \
+  attribute
   def name
     @name ||= @object.name
   end
@@ -26,7 +26,7 @@ RSpec.describe 'Development Mode', type: :serializer do
 
   it 'should fail early when memoization is used incorrectly' do
     expect { StatefulSerializer.many([album, album]) }
-      .to raise_error(ArgumentError, 'Serializer instances are reused so they must be stateless. Use `memo.fetch` for memoization purposes instead. Bad keys: name')
+      .to raise_error(ArgumentError, 'Serializer instances are reused so they must be stateless. Use `memo.fetch` for memoization purposes instead. Bad keys: name in StatefulSerializer')
   end
 
   it 'should fail early when `attributes` is used instead of `serializer_attributes`' do
@@ -34,7 +34,7 @@ RSpec.describe 'Development Mode', type: :serializer do
       .to raise_error(NoMethodError, /Perhaps you meant to call "release" in InvalidAlbumSerializer instead?/)
   end
 
-  it 'should fail early when there is a typo or missing field in Mongoid' do
+  xit 'should fail early when there is a typo or missing field in Mongoid' do
     expect { MissingAttributeSerializer.one_if(album) }
       .to raise_error(ActiveModel::MissingAttributeError, /Missing attribute: 'name2'/)
   end

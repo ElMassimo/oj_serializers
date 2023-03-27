@@ -57,7 +57,7 @@ class Player < ActiveRecord::Base
 end
 
 class PlayerSerializer < Oj::Serializer
-  attributes :id, if: -> { player.persisted? }
+  identifier
   attributes :first_name, :last_name, :full_name
 end
 
@@ -68,7 +68,7 @@ class ScoresSerializer < Oj::Serializer
 end
 
 class GameSerializer < Oj::Serializer
-  attributes :id, if: -> { game.persisted? }
+  identifier
   attributes :name
 
   flat_one :game, serializer: ScoresSerializer

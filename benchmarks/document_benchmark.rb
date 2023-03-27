@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
 require 'benchmark_helper'
-require 'support/models/album'
 
-RSpec.describe 'Document Accessors', category: :benchmark do
+RSpec.describe 'Document Accessors', :benchmark do
   let(:album) { Album.abraxas }
 
   it 'getters performance' do

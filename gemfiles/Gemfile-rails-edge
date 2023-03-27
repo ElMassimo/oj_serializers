@@ -1,10 +1,8 @@
-source 'https://rubygems.org'
+require_relative "base"
 
-git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+eval main_gemfile
 
 gem 'rails', github: 'rails/rails', branch: 'main'
 gem 'actionpack', github: 'rails/rails', branch: 'main', glob: 'actionpack/*.gemspec'
 gem 'activerecord', github: 'rails/rails', branch: 'main', glob: 'activerecord/*.gemspec'
 gem 'railties', github: 'rails/rails', branch: 'main', glob: 'railties/*.gemspec'
-
-gemspec path: '..'

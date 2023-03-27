@@ -11,7 +11,7 @@ RSpec.describe AlbumsController, type: :controller do
     Rails.application.quick_setup
   end
 
-  it 'should be able to use serializer options and legacy serializers' do
+  it 'should use serializer options' do
     get :list
     albums = parse_json[:albums]
     expect(albums.size).to eq 3
