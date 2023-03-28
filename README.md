@@ -27,6 +27,8 @@ Faster JSON serializers for Ruby, built on top of the powerful [`oj`][oj] librar
 [render dsl]: https://github.com/ElMassimo/oj_serializers#render-dsl-
 [sorbet]: https://sorbet.org/
 [Discussion]: https://github.com/ElMassimo/oj_serializers/discussions
+[TypeScript]: https://www.typescriptlang.org/
+[types_from_serializers]: https://github.com/ElMassimo/types_from_serializers
 
 ## Why? 🤔
 
@@ -44,6 +46,7 @@ Learn more about [how this library achieves its performance][design].
 - Support for `has_one` and `has_many`, compose with `flat_one`
 - Useful development checks to avoid typos and mistakes
 - Integrates nicely with Rails controllers
+- [Generate TypeScript interfaces automatically][types_from_serializers]
 
 ## Installation 💿
 
@@ -364,6 +367,16 @@ end
 One slight variation that might make it easier to maintain in the long term is
 to use a separate singleton service to provide the url helpers and options, and
 make it available as `urls`.
+
+### Generating TypeScript automatically 🤖
+
+It's easy for the backend and the frontend to become out of sync. Traditionally, preventing bugs requires writing extensive integration tests.
+
+[TypeScript] is a great tool to catch this kind of bugs and mistakes, as it can detect incorrect usages and missing fields, but writing types manually is cumbersome, and they can become stale over time, giving a false sense of confidence.
+
+[`types_from_serializers`][types_from_serializers] extends this library to allow embedding type information, as well as inferring types from the SQL schema when available, and uses this information to automatically generate TypeScript interfaces from your serializers.
+
+As a result, it's posible to easily detect mismatches between the backend and the frontend, as well as make the fields more discoverable and provide great autocompletion in the frontend, without having to manually write the types.
 
 ### Memoization & local state
 
