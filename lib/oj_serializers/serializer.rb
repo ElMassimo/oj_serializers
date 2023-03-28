@@ -681,7 +681,7 @@ protected
     def _prepare_serializer
       if _sort_attributes_by
         @_attributes = _attributes.sort_by { |key, options|
-          _sort_attributes_by.call(key, options)
+          _sort_attributes_by.call(key_for(key, options), options)
         }.to_h
       end
       class_eval(code_to_write_to_json)
