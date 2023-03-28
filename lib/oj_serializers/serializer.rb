@@ -446,9 +446,11 @@ protected
     end
 
     # Internal: Transforms the keys using the provided strategy.
+    #
+    # Returns a String.
     def key_for(method_name, options)
       key = options.fetch(:as, method_name)
-      _transform_keys ? _transform_keys.call(key) : key
+      _transform_keys ? _transform_keys.call(key).to_s : key.to_s
     end
 
     # Internal: Whether the object should be serialized as a collection.
