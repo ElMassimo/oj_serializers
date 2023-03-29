@@ -19,7 +19,22 @@ require 'oj_serializers/json_value'
 class OjSerializers::Serializer
   # Public: Used to validate incorrect memoization during development. Users of
   # this library might add additional options as needed.
-  ALLOWED_INSTANCE_VARIABLES = %w[memo object options]
+  ALLOWED_INSTANCE_VARIABLES = %w[
+    memo
+    object
+    options
+    _routes
+  ]
+
+  KNOWN_ATTRIBUTE_OPTIONS = %i[
+    attribute
+    association
+    identifier
+    if
+    optional
+    type
+    serializer
+  ].to_set
 
   CACHE = (defined?(Rails) && Rails.cache) ||
           (defined?(ActiveSupport::Cache::MemoryStore) ? ActiveSupport::Cache::MemoryStore.new : OjSerializers::Memo.new)
@@ -85,30 +100,40 @@ protected
   class << self
     # Public: Allows the user to specify `default_format :json`, as a simple
     # way to ensure that `.one` and `.many` work as in Version 1.
-    def default_format(value)
-      @_default_format = value
+    #
+    # This setting is inherited from parent classes.
+    def default_format(format)
+      define_singleton_method(:_default_format) { format }
       define_serialization_shortcuts
     end
 
-    # Public: Allows to sort fields by name instead.
-    def sort_attributes_by(value)
-      @_sort_attributes_by = case value
-      when :name then ->(name, options) { options[:identifier] ? "__#{name}" : name }
-      when Proc then value
+    # Public: Allows to sort fields by name instead of by definition order, or
+    # pass a Proc to apply a custom order.
+    #
+    # This setting is inherited from parent classes.
+    def sort_attributes_by(strategy)
+      case strategy
+      when :name, :definition, Proc
+        define_singleton_method(:_sort_attributes_by) { strategy }
       else
-        raise ArgumentError, "Unknown sorting option: #{value.inspect}"
+        raise ArgumentError, "Unknown sorting option: #{strategy.inspect}"
       end
     end
 
-    # Public: Allows to sort fields by name instead.
-    def transform_keys(transformer = nil, &block)
-      @_transform_keys = case (transformer ||= block)
-      when :camelize, :camel_case then ->(key) { key.to_s.camelize(:lower) }
-      when Symbol then transformer.to_proc
-      when Proc then transformer
+    # Public: Allows to transform the JSON keys to camelCase, or pass a Proc
+    # to apply a custom transformation.
+    #
+    # This setting is inherited from parent classes.
+    def transform_keys(strategy = nil, &block)
+      transformer = case (strategy ||= block)
+      when :camelize, :camel_case then ->(key) { key.camelize(:lower) }
+      when :none then nil
+      when Symbol then strategy.to_proc
+      when Proc then strategy
       else
-        raise(ArgumentError, "Expected transform_keys to be callable, got: #{transformer.inspect}")
+        raise(ArgumentError, "Expected transform_keys to be callable, got: #{strategy.inspect}")
       end
+      define_singleton_method(:_transform_keys) { transformer }
     end
 
     # Public: Creates an alias for the internal object.
@@ -318,15 +343,15 @@ protected
 
     # Public: Specify a collection of objects that should be serialized using
     # the specified serializer.
-    def has_many(name, serializer:, root: name, as: root, **options, &block)
+    def has_many(name, serializer:, **options, &block)
       define_method(name, &block) if block
-      add_attribute(name, association: :many, as: as, serializer: serializer, **options)
+      add_attribute(name, association: :many, serializer: serializer, **options)
     end
 
     # Public: Specify an object that should be serialized using the serializer.
-    def has_one(name, serializer:, root: name, as: root, **options, &block)
+    def has_one(name, serializer:, **options, &block)
       define_method(name, &block) if block
-      add_attribute(name, association: :one, as: as, serializer: serializer, **options)
+      add_attribute(name, association: :one, serializer: serializer, **options)
     end
     # Alias: From a serializer perspective, the association type does not matter.
     alias_method :belongs_to, :has_one
@@ -340,9 +365,8 @@ protected
 
     # Public: Specify which attributes are going to be obtained from indexing
     # the object.
-    def hash_attributes(*method_names, **options)
-      options = { **options, attribute: :hash }
-      method_names.each { |name| _attributes[name] = options }
+    def hash_attributes(*attr_names, **options)
+      attributes(*attr_names, **options, attribute: :hash)
     end
 
     # Public: Specify which attributes are going to be obtained from indexing
@@ -351,31 +375,31 @@ protected
     # Automatically renames `_id` to `id` for Mongoid models.
     #
     # See ./benchmarks/document_benchmark.rb
-    def mongo_attributes(*method_names, **options)
-      identifier(:_id, as: :id, attribute: :mongoid, **options) if method_names.delete(:id)
-      attributes(*method_names, **options, attribute: :mongoid)
+    def mongo_attributes(*attr_names, **options)
+      identifier(:_id, as: :id, attribute: :mongoid, **options) if attr_names.delete(:id)
+      attributes(*attr_names, **options, attribute: :mongoid)
     end
 
     # Public: Specify which attributes are going to be obtained by calling a
     # method in the object.
-    def attributes(*method_names, **methods_with_options)
+    def attributes(*attr_names, **methods_with_options)
       attr_options = methods_with_options.extract!(:if, :as, :attribute)
       attr_options[:attribute] ||= :method
 
-      method_names.each do |name|
-        add_attribute(name, attr_options)
+      attr_names.each do |attr_name|
+        add_attribute(attr_name, **attr_options)
       end
 
-      methods_with_options.each do |name, options|
+      methods_with_options.each do |attr_name, options|
         options = { as: options } if options.is_a?(Symbol)
-        add_attribute(name, options)
+        add_attribute(attr_name, **options)
       end
     end
 
     # Public: Specify which attributes are going to be obtained by calling a
     # method in the serializer.
-    def serializer_attributes(*method_names, **options)
-      attributes(*method_names, **options, attribute: :serializer)
+    def serializer_attributes(*attr_names, **options)
+      attributes(*attr_names, **options, attribute: :serializer)
     end
 
     # Syntax Sugar: Allows to use it before a method name.
@@ -389,7 +413,7 @@ protected
       options[:attribute] = :serializer
       if name
         define_method(name, &block) if block
-        add_attribute(name, options)
+        add_attribute(name, **options)
       else
         @_current_attribute_options = options
       end
@@ -401,7 +425,7 @@ protected
     def method_added(name)
       super(name)
       if @_current_attribute_options
-        add_attribute(name, @_current_attribute_options)
+        add_attribute(name, **@_current_attribute_options)
         @_current_attribute_options = nil
       end
     end
@@ -410,47 +434,31 @@ protected
     # calling a method in the serializer, or using `read_attribute_for_serialization`.
     #
     # NOTE: Prefer to use `attributes` or `serializer_attributes` explicitly.
-    def ams_attributes(*method_names, **options)
-      method_names.each do |method_name|
-        define_method(method_name) { @object.read_attribute_for_serialization(method_name) } unless method_defined?(method_name)
+    def ams_attributes(*attr_names, **options)
+      attr_names.each do |attr_name|
+        define_method(attr_name) { @object.read_attribute_for_serialization(attr_name) } unless method_defined?(attr_name)
       end
-      attributes(*method_names, **options, attribute: :serializer)
-    end
-
-    # Internal: The default format to use for `render`, `one`, and `many`.
-    def _default_format
-      @_default_format = superclass.try(:_default_format) || :hash unless defined?(@_default_format)
-      @_default_format
-    end
-
-    # Internal: The strategy to use when sorting the fields.
-    #
-    # This setting is inherited from parent classes.
-    def _sort_attributes_by
-      @_sort_attributes_by = superclass.try(:_sort_attributes_by) unless defined?(@_sort_attributes_by)
-      @_sort_attributes_by
-    end
-
-    # Internal: The converter to use for serializer keys.
-    #
-    # This setting is inherited from parent classes.
-    def _transform_keys
-      @_transform_keys = superclass.try(:_transform_keys) unless defined?(@_transform_keys)
-      @_transform_keys
+      attributes(*attr_names, **options, attribute: :serializer)
     end
 
   private
 
-    def add_attribute(name, options)
-      _attributes[name.to_s.freeze] = options
-    end
+    def add_attribute(value_from, root: nil, as: nil, **options)
+      # Hash attributes could be numbers or symbols.
+      value_from = value_from.to_s unless options[:attribute] == :hash
 
-    # Internal: Transforms the keys using the provided strategy.
-    #
-    # Returns a String.
-    def key_for(method_name, options)
-      key = options.fetch(:as, method_name)
-      _transform_keys ? _transform_keys.call(key).to_s : key.to_s
+      # Obtain the JSON key to use for the attribute.
+      key = (root || as || value_from).to_s
+
+      # Should be able to add "duplicate" flat associations.
+      key += _attributes.count.to_s if options[:association] == :flat
+
+      # Check for typos in options.
+      if DEV_MODE && (option, = options.find { |option, _value| !KNOWN_ATTRIBUTE_OPTIONS.include?(option) })
+        raise ArgumentError, "Unknown option #{option.inspect} for attribute #{value_from.inspect} in #{name}. Please check for typos."
+      end
+
+      _attributes[key.freeze] = { value_from: value_from, **options }.freeze
     end
 
     # Internal: Whether the object should be serialized as a collection.
@@ -466,19 +474,19 @@ protected
     #
     # As a result, the performance is the same as writing the most efficient
     # code by hand.
-    def code_to_write_to_json
+    def code_to_write_to_json(attributes)
       <<~WRITE_TO_JSON
         # Public: Writes this serializer content to a provided Oj::StringWriter.
         def write_to_json(writer, item, options = nil)
           @object = item
           @options = options
           @memo.clear if defined?(@memo)
-          #{ _attributes.map { |method_name, options|
-            code_to_write_conditional(method_name, options) {
+          #{ attributes.map { |key, options|
+            code_to_write_conditionally(options) {
               if options[:association]
-                code_to_write_association(method_name, options)
+                code_to_write_association(key, options)
               else
-                code_to_write_attribute(method_name, options)
+                code_to_write_attribute(key, options)
               end
             }
           }.join("\n  ") }#{code_to_rescue_no_method if DEV_MODE}
@@ -492,7 +500,7 @@ protected
     #
     # As a result, the performance is the same as writing the most efficient
     # code by hand.
-    def code_to_render_as_hash
+    def code_to_render_as_hash(attributes)
       <<~RENDER_AS_HASH
         # Public: Writes this serializer content to a Hash.
         def render_as_hash(item, options = nil)
@@ -500,12 +508,12 @@ protected
           @options = options
           @memo.clear if defined?(@memo)
           {
-            #{_attributes.map { |method_name, options|
-              code_to_render_conditionally(method_name, options) {
+            #{attributes.map { |key, options|
+              code_to_render_conditionally(options) {
                 if options[:association]
-                  code_to_render_association(method_name, options)
+                  code_to_render_association(key, options)
                 else
-                  code_to_render_attribute(method_name, options)
+                  code_to_render_attribute(key, options)
                 end
               }
             }.join(",\n    ")}
@@ -520,7 +528,7 @@ protected
         rescue NoMethodError => e
           key = e.name.to_s.inspect
           message = if respond_to?(e.name)
-            raise e, "Perhaps you meant to call \#{key} in \#{self.class} instead?\nTry using `serializer_attributes :\#{key}` or `attribute def \#{key}`.\n\#{e.message}"
+            raise e, "Perhaps you meant to call \#{key} in \#{self.class} instead?\nTry using `attribute :\#{key} do` or `attribute def \#{key}`.\n\#{e.message}"
           elsif @object.respond_to?(e.name)
             raise e, "Perhaps you meant to call \#{key} in \#{@object.class} instead?\nTry using `attributes :\#{key}`.\n\#{e.message}"
           else
@@ -533,8 +541,9 @@ protected
 
     # Internal: Detects any include methods defined in the serializer, or defines
     # one by using the lambda passed in the `if` option, if any.
-    def check_conditional_method(method_name, options)
-      include_method_name = "include_#{method_name}#{'?' unless method_name.to_s.ends_with?('?')}"
+    def check_conditional_method(options)
+      value_from = options.fetch(:value_from)
+      include_method_name = "include_#{value_from}#{'?' unless value_from.to_s.ends_with?('?')}"
       if render_if = options[:if]
         if render_if.is_a?(Symbol)
           alias_method(include_method_name, render_if)
@@ -550,8 +559,8 @@ protected
     #
     # NOTE: Detects any include methods defined in the serializer, or defines
     # one by using the lambda passed in the `if` option, if any.
-    def code_to_write_conditional(method_name, options)
-      if (include_method_name = check_conditional_method(method_name, options))
+    def code_to_write_conditionally(options)
+      if (include_method_name = check_conditional_method(options))
         "if #{include_method_name};#{yield};end\n"
       else
         yield
@@ -559,50 +568,52 @@ protected
     end
 
     # Internal: Returns the code for the association method.
-    def code_to_write_attribute(method_name, options)
-      key = key_for(method_name, options).to_s.inspect
+    def code_to_write_attribute(key, options)
+      value_from = options.fetch(:value_from)
 
-      case strategy = options.fetch(:attribute)
+      value = case (strategy = options.fetch(:attribute))
       when :serializer
         # Obtains the value by calling a method in the serializer.
-        "writer.push_value(#{method_name}, #{key})"
+        value_from
       when :method
         # Obtains the value by calling a method in the object, and writes it.
-        "writer.push_value(@object.#{method_name}, #{key})"
+        "@object.#{value_from}"
       when :hash
         # Writes a Hash value to JSON, works with String or Symbol keys.
-        "writer.push_value(@object[#{method_name.inspect}], #{key})"
+        "@object[#{value_from.inspect}]"
       when :mongoid
         # Writes an Mongoid attribute to JSON, this is the fastest strategy.
-        "writer.push_value(@object.attributes['#{method_name}'], #{key})"
+        "@object.attributes['#{value_from}']"
       else
         raise ArgumentError, "Unknown attribute strategy: #{strategy.inspect}"
       end
+
+      "writer.push_value(#{value}, #{key.inspect})"
     end
 
     # Internal: Returns the code for the association method.
-    def code_to_write_association(method_name, options)
+    def code_to_write_association(key, options)
       # Use a serializer method if defined, else call the association in the object.
-      association_method = method_defined?(method_name) ? method_name : "@object.#{method_name}"
-      key = key_for(method_name, options)
+      value_from = options.fetch(:value_from)
+      value = method_defined?(value_from) ? value_from : "@object.#{value_from}"
       serializer_class = options.fetch(:serializer)
 
       case type = options.fetch(:association)
       when :one
         <<~WRITE_ONE
-          if associated_object = #{association_method}
+          if __value = #{value}
             writer.push_key('#{key}')
-            #{serializer_class}.write_one(writer, associated_object)
+            #{serializer_class}.write_one(writer, __value)
           end
         WRITE_ONE
       when :many
         <<~WRITE_MANY
           writer.push_key('#{key}')
-          #{serializer_class}.write_many(writer, #{association_method})
+          #{serializer_class}.write_many(writer, #{value})
         WRITE_MANY
       when :flat
         <<~WRITE_FLAT
-          #{serializer_class}.write_to_json(writer, #{association_method})
+          #{serializer_class}.write_to_json(writer, #{value})
         WRITE_FLAT
       else
         raise ArgumentError, "Unknown association type: #{type.inspect}"
@@ -614,8 +625,8 @@ protected
     #
     # NOTE: Detects any include methods defined in the serializer, or defines
     # one by using the lambda passed in the `if` option, if any.
-    def code_to_render_conditionally(method_name, options)
-      if (include_method_name = check_conditional_method(method_name, options))
+    def code_to_render_conditionally(options)
+      if (include_method_name = check_conditional_method(options))
         "**(#{include_method_name} ? {#{yield}} : {})"
       else
         yield
@@ -623,36 +634,39 @@ protected
     end
 
     # Internal: Returns the code for the attribute method.
-    def code_to_render_attribute(method_name, options)
-      key = key_for(method_name, options)
-      case strategy = options.fetch(:attribute)
+    def code_to_render_attribute(key, options)
+      value_from = options.fetch(:value_from)
+
+      value = case (strategy = options.fetch(:attribute))
       when :serializer
-        "#{key}: #{method_name}"
+        value_from
       when :method
-        "#{key}: @object.#{method_name}"
+        "@object.#{value_from}"
       when :hash
-        "#{key}: @object[#{method_name.inspect}]"
+        "@object[#{value_from.inspect}]"
       when :mongoid
-        "#{key}: @object.attributes['#{method_name}']"
+        "@object.attributes['#{value_from}']"
       else
         raise ArgumentError, "Unknown attribute strategy: #{strategy.inspect}"
       end
+
+      "#{key}: #{value}"
     end
 
     # Internal: Returns the code for the association method.
-    def code_to_render_association(method_name, options)
+    def code_to_render_association(key, options)
       # Use a serializer method if defined, else call the association in the object.
-      association = method_defined?(method_name) ? method_name : "@object.#{method_name}"
-      key = key_for(method_name, options)
+      value_from = options.fetch(:value_from)
+      value = method_defined?(value_from) ? value_from : "@object.#{value_from}"
       serializer_class = options.fetch(:serializer)
 
       case type = options.fetch(:association)
       when :one
-        "#{key}: (one_item = #{association}) ? #{serializer_class}.one_as_hash(one_item) : nil"
+        "#{key}: (__value = #{value}) ? #{serializer_class}.one_as_hash(__value) : nil"
       when :many
-        "#{key}: #{serializer_class}.many_as_hash(#{association})"
+        "#{key}: #{serializer_class}.many_as_hash(#{value})"
       when :flat
-        "**#{serializer_class}.one_as_hash(#{association})"
+        "**#{serializer_class}.one_as_hash(#{value})"
       else
         raise ArgumentError, "Unknown association type: #{type.inspect}"
       end
@@ -673,25 +687,36 @@ protected
       @instance_key ||= begin
         # We take advantage of the fact that this method will always be called
         # before instantiating a serializer, to apply last minute adjustments.
-        _prepare_serializer
+        prepare_serializer
         "#{name.underscore}_instance_#{object_id}".to_sym
       end
     end
 
     # Internal: Generates write_to_json and render_as_hash methods optimized for
     # the specified configuration.
-    def _prepare_serializer
-      if _sort_attributes_by
-        @_attributes = _attributes.sort_by { |key, options|
-          _sort_attributes_by.call(key_for(key, options), options)
-        }.to_h
+    def prepare_serializer
+      attributes = prepare_attributes
+      class_eval(code_to_write_to_json(attributes))
+      class_eval(code_to_render_as_hash(attributes))
+    end
+
+    # Internal: Returns attributes sorted and with keys transformed using
+    # the specified strategies.
+    def prepare_attributes(transform_keys: try(:_transform_keys), sort_by: try(:_sort_attributes_by))
+      attributes = _attributes
+      attributes = attributes.transform_keys(&transform_keys) if transform_keys
+
+      if sort_by == :name
+        sort_by = ->(name, options, _) { options[:identifier] ? "__#{name}" : name }
+      elsif !sort_by || sort_by == :definition
+        sort_by = ->(name, options, index) { options[:identifier] ? "__#{name}" : "zzz#{index}" }
       end
-      class_eval(code_to_write_to_json)
-      class_eval(code_to_render_as_hash)
+
+      attributes.sort_by.with_index { |(name, options), index| sort_by.call(name, options, index) }.to_h
     end
   end
 
-  define_serialization_shortcuts
+  default_format :hash
 end
 
 Oj::Serializer = OjSerializers::Serializer unless defined?(Oj::Serializer)
