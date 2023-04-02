@@ -22,6 +22,8 @@ Faster JSON serializers for Ruby, built on top of the powerful [`oj`][oj] librar
 [sugar]: https://github.com/ElMassimo/oj_serializers/blob/main/lib/oj_serializers/sugar.rb#L14
 [migration guide]: https://github.com/ElMassimo/oj_serializers/blob/main/MIGRATION_GUIDE.md
 [design]: https://github.com/ElMassimo/oj_serializers#design-
+[associations]: https://github.com/ElMassimo/oj_serializers#associations-
+[compose]: https://github.com/ElMassimo/oj_serializers#composing-serializers-
 [raw_json]: https://github.com/ohler55/oj/issues/542
 [trailing_commas]: https://maximomussini.com/posts/trailing-commas/
 [render dsl]: https://github.com/ElMassimo/oj_serializers#render-dsl-
@@ -41,12 +43,12 @@ Learn more about [how this library achieves its performance][design].
 
 ## Features ⚡️
 
-- Declaration syntax [similar to Active Model Serializers][migration guide]
+- Intuitive declaration syntax, supporting mixins and inheritance
 - Reduced [memory allocation][benchmarks] and [improved performance][benchmarks]
-- Support for `has_one` and `has_many`, compose with `flat_one`
+- Generate [TypeScript interfaces automatically][types_from_serializers]
+- Support for [`has_one`][associations] and [`has_many`][associations], compose with [`flat_one`][compose]
 - Useful development checks to avoid typos and mistakes
-- Integrates nicely with Rails controllers
-- [Generate TypeScript interfaces automatically][types_from_serializers]
+- [Migrate easily from Active Model Serializers][migration guide]
 
 ## Installation 💿
 
@@ -155,6 +157,24 @@ class AlbumsController < ApplicationController
 end
 ```
 
+<details>
+  <summary>Active Model Serializers style</summary>
+
+```ruby
+require "oj_serializers/sugar" # In an initializer
+
+class AlbumsController < ApplicationController
+  def show
+    render json: album, serializer: AlbumSerializer
+  end
+  
+  def index
+    render json: albums, root: :albums, each_serializer: AlbumSerializer
+  end
+end
+```
+</details>
+
 ## Rendering 🖨
 
 Use `one` to serialize objects, and `many` to serialize enumerables:
@@ -170,7 +190,7 @@ Serializers can be rendered arrays, hashes, or even inside `ActiveModel::Seriali
 by using a method in the serializer, making it very easy to combine with other
 libraries and migrate incrementally.
 
-You can use `render` as a shortcut for `one` and `many`, but it might be less readable:
+`render` is a shortcut for `one` and `many`:
 
 ```ruby
 render json: {
@@ -378,6 +398,41 @@ It's easy for the backend and the frontend to become out of sync. Traditionally,
 
 As a result, it's posible to easily detect mismatches between the backend and the frontend, as well as make the fields more discoverable and provide great autocompletion in the frontend, without having to manually write the types.
 
+### Composing serializers 🧱
+
+There are three options to compose serializers: inheritance, mixins, and `flat_one`.
+
+Use `flat_one` to include all attributes from a different serializer:
+
+```ruby
+class AttachmentSerializer < BaseSerializer
+  identifier
+
+  class BlobSerializer < BaseSerializer
+    attributes :filename, :byte_size, :content_type, :created_at
+  end
+
+  flat_one :blob, serializer: BlobSerializer
+end
+```
+
+<details>
+  <summary>Example Output</summary>
+
+```ruby
+{
+  id: 5,
+  filename: "image.jpg,
+  byte_size: 256074,
+  content_type: "image/jpeg",
+  created_at: "2022-08-04T17:25:12.637-07:00",
+}
+```
+</details>
+
+This is especially convenient when using [`types_from_serializers`][types_from_serializers],
+as it enables automatic type inference for the included attributes.
+
 ### Memoization & local state
 
 Serializers are designed to be stateless so that an instanced can be reused, but
@@ -480,10 +535,8 @@ end
 This will change the default shortcuts (`render`, `one`, `one_if`, and `many`),
 so that the serializer writes directly to JSON instead of returning a Hash.
 
-> **Note**
->
-> This was the default behavior in `oj_serializers` v1, but was replaced with
-`default_format :hash` in v2.
+Even when using this mode, you can still use rendered values inside arrays,
+hashes, and other serializers, thanks to [the `raw_json` extensions][raw_json].
 
 <details>
   <summary>Example Output</summary>
@@ -568,9 +621,6 @@ so that the serializer writes directly to JSON instead of returning a Hash.
 }
 ```
 </details>
-
-Even when using this mode, you can still use rendered values inside arrays,
-hashes, and other serializers, thanks to [the `raw_json` extensions][raw_json].
 
 ## Design 📐
 
