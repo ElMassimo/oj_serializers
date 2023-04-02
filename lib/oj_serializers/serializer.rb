@@ -376,7 +376,7 @@ protected
     #
     # See ./benchmarks/document_benchmark.rb
     def mongo_attributes(*attr_names, **options)
-      identifier(:_id, as: :id, attribute: :mongoid, **options) if attr_names.delete(:id)
+      identifier(:_id, as: :id, attribute: :mongoid, **options.slice(:if)) if attr_names.delete(:id)
       attributes(*attr_names, **options, attribute: :mongoid)
     end
 
@@ -392,6 +392,7 @@ protected
 
       methods_with_options.each do |attr_name, options|
         options = { as: options } if options.is_a?(Symbol)
+        options[:attribute] ||= attr_options[:attribute]
         add_attribute(attr_name, **options)
       end
     end
