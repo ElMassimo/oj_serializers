@@ -126,7 +126,7 @@ protected
     # This setting is inherited from parent classes.
     def transform_keys(strategy = nil, &block)
       transformer = case (strategy ||= block)
-      when :camelize, :camel_case then ->(key) { key.camelize(:lower) }
+      when :camelize, :camel_case then ->(key) { key.camelize(:lower).chomp('?') }
       when :none then nil
       when Symbol then strategy.to_proc
       when Proc then strategy

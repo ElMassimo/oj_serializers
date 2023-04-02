@@ -1,3 +1,9 @@
+## Oj Serializers 2.0.2 (2023-04-02)
+
+### Fixes 🐞
+
+- [Error when defining attributes with options](https://github.com/ElMassimo/oj_serializers/commit/680ab47)
+
 ## Oj Serializers 2.0.1 (2023-04-02)
 
 ### Features ✨
