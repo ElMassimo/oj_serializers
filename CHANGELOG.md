@@ -1,3 +1,14 @@
+## Oj Serializers 2.0.1 (2023-04-02)
+
+### Features ✨
+
+- [Automatically mark `id` as an identifier (rendered first)](https://github.com/ElMassimo/oj_serializers/commit/c4c6de7)
+- [Fail on typos in attribute and association options](https://github.com/ElMassimo/oj_serializers/commit/afd80ac)
+
+### Fixes 🐞
+
+- [Aliased attributes should be sorted by the output key](https://github.com/ElMassimo/oj_serializers/commit/fc6f4c1)
+
 ## [Oj Serializers 2.0.0 (2023-03-27)](https://github.com/ElMassimo/oj_serializers/pull/9)
 
 ### Features ✨
