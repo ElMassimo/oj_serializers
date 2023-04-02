@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    oj_serializers (2.0.1)
+    oj_serializers (2.0.2)
       oj (>= 3.14.0)
 
 GEM

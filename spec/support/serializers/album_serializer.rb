@@ -8,7 +8,7 @@ class AlbumSerializer < Oj::Serializer
   mongo_attributes(
     :id,
     :name,
-    genres: {type: :string},
+    genres: { type: :string },
   )
 
   attribute if: -> { album.released? }

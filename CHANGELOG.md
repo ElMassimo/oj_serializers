@@ -1,5 +1,9 @@
 ## Oj Serializers 2.0.2 (2023-04-02)
 
+### Features ✨
+
+- [Automatically remove `?` when using `transform_keys :camelize`](https://github.com/ElMassimo/oj_serializers/commit/79758a0)
+
 ### Fixes 🐞
 
 - [Error when defining attributes with options](https://github.com/ElMassimo/oj_serializers/commit/680ab47)
