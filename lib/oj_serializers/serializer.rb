@@ -444,6 +444,9 @@ protected
   private
 
     def add_attribute(value_from, root: nil, as: nil, **options)
+      # Because it's so common, automatically mark id as an identifier.
+      options[:identifier] = true if value_from == :id && !options.key?(:identifier)
+
       # Hash attributes could be numbers or symbols.
       value_from = value_from.to_s unless options[:attribute] == :hash
 
