@@ -400,7 +400,7 @@ As a result, it's posible to easily detect mismatches between the backend and th
 
 ### Composing serializers 🧱
 
-There are three options to compose serializers: inheritance, mixins, and `flat_one`.
+There are three options to [compose serializers](https://github.com/ElMassimo/oj_serializers/discussions/10#discussioncomment-5523921): inheritance, mixins, and `flat_one`.
 
 Use `flat_one` to include all attributes from a different serializer:
 
@@ -415,6 +415,8 @@ class AttachmentSerializer < BaseSerializer
   flat_one :blob, serializer: BlobSerializer
 end
 ```
+
+Think of it as `has_one` without a "root", all the attributes are added directly.
 
 <details>
   <summary>Example Output</summary>
