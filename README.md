@@ -31,6 +31,7 @@ Faster JSON serializers for Ruby, built on top of the powerful [`oj`][oj] librar
 [Discussion]: https://github.com/ElMassimo/oj_serializers/discussions
 [TypeScript]: https://www.typescriptlang.org/
 [types_from_serializers]: https://github.com/ElMassimo/types_from_serializers
+[inheritance]: https://github.com/ElMassimo/types_from_serializers/blob/main/playground/vanilla/app/serializers/song_with_videos_serializer.rb#L1
 
 ## Why? 🤔
 
@@ -400,7 +401,7 @@ As a result, it's posible to easily detect mismatches between the backend and th
 
 ### Composing serializers 🧱
 
-There are three options to [compose serializers](https://github.com/ElMassimo/oj_serializers/discussions/10#discussioncomment-5523921): inheritance, mixins, and `flat_one`.
+There are three options to [compose serializers](https://github.com/ElMassimo/oj_serializers/discussions/10#discussioncomment-5523921): [inheritance], mixins, and `flat_one`.
 
 Use `flat_one` to include all attributes from a different serializer:
 
