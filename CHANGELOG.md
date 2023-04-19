@@ -1,3 +1,13 @@
+## Oj Serializers 2.0.3 (2023-04-19)
+
+### Features ✨
+
+- [Allow `key` and `unless` in AMS-compat mode](https://github.com/ElMassimo/oj_serializers/commit/5050710e199651cc2c0e9d9d6395f2c2ac9b1875)
+
+### Fixes 🐞
+
+- [Allow using `active_model_serializers` in associations](https://github.com/ElMassimo/oj_serializers/commit/501ed4014b564e6f103d2f52d15832fe6706d6a8)
+
 ## Oj Serializers 2.0.2 (2023-04-02)
 
 ### Features ✨
