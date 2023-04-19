@@ -6,8 +6,8 @@ require 'support/models/album'
 require 'support/serializers/active_model_serializer'
 
 class CompatSerializer < Oj::Serializer
-  has_one :item, serializer: ActiveModelSerializer
-  has_many :items, serializer: ActiveModelSerializer
+  has_one :item, key: :album, serializer: ActiveModelSerializer
+  has_many :items, serializer: ActiveModelSerializer, unless: -> { options[:skip_collection] }
 end
 
 class JsonCompatSerializer < CompatSerializer
@@ -25,13 +25,21 @@ RSpec.describe 'AMS Compat', type: :serializer do
     attrs = { id: 1, name: 'Abraxas' }
 
     expect_encoded_json(CompatSerializer.one(object)).to eq({
-      item: attrs,
+      album: attrs,
       items: [attrs, attrs],
     }.to_json)
 
+    expect_encoded_json(CompatSerializer.one(object, skip_collection: true)).to eq({
+      album: attrs,
+    }.to_json)
+
     expect_encoded_json(JsonCompatSerializer.one(object)).to eq({
-      item: attrs,
+      album: attrs,
       items: [attrs, attrs],
+    }.to_json)
+
+    expect_encoded_json(JsonCompatSerializer.one(object, skip_collection: true)).to eq({
+      album: attrs,
     }.to_json)
   end
 end
