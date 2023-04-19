@@ -32,17 +32,17 @@ class ActiveModel::Serializer
   # OjSerializer: Used internally to write a single object association in :json mode.
   #
   # Returns nothing.
-  def self.write_one(writer, object, options)
-    writer.push_value(new(object, options))
+  def self.write_one(writer, object)
+    writer.push_value(new(object))
   end
 
   # OjSerializer: Used internally to write an association in :json mode.
   #
   # Returns nothing.
-  def self.write_many(writer, array, options)
+  def self.write_many(writer, array)
     writer.push_array
     array.each do |object|
-      write_one(writer, object, options)
+      write_one(writer, object)
     end
     writer.pop
   end
