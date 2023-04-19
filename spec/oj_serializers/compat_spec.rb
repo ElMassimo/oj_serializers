@@ -14,15 +14,15 @@ class JsonCompatSerializer < CompatSerializer
   default_format :json
 end
 
-RSpec.describe "AMS Compat", type: :serializer do
+RSpec.describe 'AMS Compat', type: :serializer do
   def expect_encoded_json(object)
     expect(Oj.dump(object).tr("\n", ''))
   end
 
   it 'can use ams serializer in associations' do
     album = Album.abraxas.tap { |a| a.id = 1 }
-    object = OpenStruct.new(item: album, items: [album, album])
-    attrs = {id: 1, name: "Abraxas"}
+    object = double('compat', item: album, items: [album, album])
+    attrs = { id: 1, name: 'Abraxas' }
 
     expect_encoded_json(CompatSerializer.one(object)).to eq({
       item: attrs,
