@@ -10,6 +10,10 @@ class CompatSerializer < Oj::Serializer
   has_many :items, serializer: ActiveModelSerializer
 end
 
+class JsonCompatSerializer < CompatSerializer
+  default_format :json
+end
+
 RSpec.describe "AMS Compat", type: :serializer do
   def expect_encoded_json(object)
     expect(Oj.dump(object).tr("\n", ''))
@@ -21,6 +25,11 @@ RSpec.describe "AMS Compat", type: :serializer do
     attrs = {id: 1, name: "Abraxas"}
 
     expect_encoded_json(CompatSerializer.one(object)).to eq({
+      item: attrs,
+      items: [attrs, attrs],
+    }.to_json)
+
+    expect_encoded_json(JsonCompatSerializer.one(object)).to eq({
       item: attrs,
       items: [attrs, attrs],
     }.to_json)
