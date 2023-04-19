@@ -46,7 +46,21 @@ class ActiveModel::Serializer
     end
     writer.pop
   end
+
+  module OjOptionsCompat
+    def add_attribute(value_from, key: nil, **options)
+      options[:as] ||= key if key
+
+      if (unless_proc = options.delete(:unless))
+        options[:if] = -> { !instance_exec(&unless_proc) }
+      end
+
+      super(value_from, **options)
+    end
+  end
 end
 
 require 'oj_serializers'
 require 'oj_serializers/sugar'
+
+Oj::Serializer.singleton_class.prepend(ActiveModel::Serializer::OjOptionsCompat)
