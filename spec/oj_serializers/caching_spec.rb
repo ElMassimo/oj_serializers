@@ -5,7 +5,7 @@ require 'support/models/album'
 require 'support/serializers/album_serializer'
 
 class CachedSongSerializer < SongSerializer
-  cached
+  cached_with_options(expires_in: 1.minute)
 end
 
 class CachedAlbumSerializer < AlbumSerializer
@@ -21,7 +21,7 @@ RSpec.describe 'Caching', type: :serializer do
 
   before do
     # NOTE: Uncomment to debug test failures.
-    # Oj::Serializer::CACHE.logger = ActiveSupport::Logger.new(STDOUT)
+    # OjSerializers.configuration.cache.logger = ActiveSupport::Logger.new(STDOUT)
   end
 
   it 'should reuse the cache effectively' do
@@ -62,5 +62,12 @@ RSpec.describe 'Caching', type: :serializer do
     expect_parsed_json(CachedAlbumSerializer.one_as_json(album)).to eq attrs
     expect_parsed_json(CachedAlbumSerializer.one_as_json(other_album)).to eq other_attrs
     expect_parsed_json(CachedAlbumSerializer.many_as_json(albums)).to eq [attrs, other_attrs]
+  end
+
+  it 'should use correct cache options' do
+    expect(OjSerializers).to receive(:configuration).at_least(1).and_return(OjSerializers::Config.new)
+    attrs = parse_json(AlbumSerializer.one_as_json(album))
+    expect(OjSerializers.configuration.cache).to receive(:fetch_multi).once.with(any_args, include(expires_in: 1.minute)).and_call_original
+    expect_parsed_json(CachedAlbumSerializer.one_as_json(album)).to eq attrs
   end
 end
