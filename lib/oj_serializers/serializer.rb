@@ -36,9 +36,6 @@ class OjSerializers::Serializer
     serializer
   ].to_set
 
-  CACHE = (defined?(Rails) && Rails.cache) ||
-          (defined?(ActiveSupport::Cache::MemoryStore) ? ActiveSupport::Cache::MemoryStore.new : OjSerializers::Memo.new)
-
   # Internal: The environment the app is currently running on.
   environment = ENV['RACK_ENV'] || ENV['RAILS_ENV'] || 'production'
 
@@ -246,19 +243,20 @@ protected
     # Defaults to calling cache_key in the object if no key is provided.
     #
     # NOTE: Benchmark it, sometimes caching is actually SLOWER.
-    def cached(cache_key_proc = :cache_key.to_proc)
-      cache_options = { namespace: "#{name}#write_to_json", version: OjSerializers::VERSION }.freeze
-      cache_hash_options = { namespace: "#{name}#render_as_hash", version: OjSerializers::VERSION }.freeze
+    def cached(cache_key: :cache_key.to_proc, options: {})
+      cache_opts = options
+      cache_options = { namespace: "#{name}#write_to_json", version: OjSerializers::VERSION, **cache_opts }.freeze
+      cache_hash_options = { namespace: "#{name}#render_as_hash", version: OjSerializers::VERSION, **cache_opts }.freeze
 
       # Internal: Redefine `one_as_hash` to use the cache for the serialized hash.
-      define_singleton_method(:one_as_hash) do |item, options = nil|
-        CACHE.fetch(item_cache_key(item, cache_key_proc), cache_hash_options) do
-          instance.render_as_hash(item, options)
+      define_singleton_method(:one_as_hash) do |item, serializer_options = nil|
+        OjSerializers.configuration.cache.fetch(item_cache_key(item, cache_key), cache_hash_options) do
+          instance.render_as_hash(item, serializer_options)
         end
       end
 
       # Internal: Redefine `many_as_hash` to use the cache for the serialized hash.
-      define_singleton_method(:many_as_hash) do |items, options = nil|
+      define_singleton_method(:many_as_hash) do |items, serializer_options = nil|
         # We define a one-off method for the class to receive the entire object
         # inside the `fetch_multi` block. Otherwise we would only get the cache
         # key, and we would need to build a Hash to retrieve the object.
@@ -266,7 +264,7 @@ protected
         # NOTE: The assignment is important, as queries would return different
         # objects when expanding with the splat in fetch_multi.
         items = items.entries.each do |item|
-          item_key = item_cache_key(item, cache_key_proc)
+          item_key = item_cache_key(item, cache_key)
           item.define_singleton_method(:cache_key) { item_key }
         end
 
@@ -274,23 +272,23 @@ protected
         #
         # NOTE: Memcached does not support `write_multi`, if we switch the cache
         # store to use Redis performance would improve a lot for this case.
-        CACHE.fetch_multi(*items, cache_hash_options) do |item|
-          instance.render_as_hash(item, options)
+        OjSerializers.configuration.cache.fetch_multi(*items, cache_hash_options) do |item|
+          instance.render_as_hash(item, serializer_options)
         end.values
       end
 
       # Internal: Redefine `write_one` to use the cache for the serialized JSON.
-      define_singleton_method(:write_one) do |external_writer, item, options = nil|
-        cached_item = CACHE.fetch(item_cache_key(item, cache_key_proc), cache_options) do
+      define_singleton_method(:write_one) do |external_writer, item, serializer_options = nil|
+        cached_item = OjSerializers.configuration.cache.fetch(item_cache_key(item, cache_key), cache_options) do
           writer = new_json_writer
-          non_cached_write_one(writer, item, options)
+          non_cached_write_one(writer, item, serializer_options)
           writer.to_json
         end
         external_writer.push_json("#{cached_item}\n") # Oj.dump expects a new line terminator.
       end
 
       # Internal: Redefine `write_many` to use fetch_multi from cache.
-      define_singleton_method(:write_many) do |external_writer, items, options = nil|
+      define_singleton_method(:write_many) do |external_writer, items, serializer_options = nil|
         # We define a one-off method for the class to receive the entire object
         # inside the `fetch_multi` block. Otherwise we would only get the cache
         # key, and we would need to build a Hash to retrieve the object.
@@ -298,7 +296,7 @@ protected
         # NOTE: The assignment is important, as queries would return different
         # objects when expanding with the splat in fetch_multi.
         items = items.entries.each do |item|
-          item_key = item_cache_key(item, cache_key_proc)
+          item_key = item_cache_key(item, cache_key)
           item.define_singleton_method(:cache_key) { item_key }
         end
 
@@ -306,9 +304,9 @@ protected
         #
         # NOTE: Memcached does not support `write_multi`, if we switch the cache
         # store to use Redis performance would improve a lot for this case.
-        cached_items = CACHE.fetch_multi(*items, cache_options) do |item|
+        cached_items = OjSerializers.configuration.cache.fetch_multi(*items, cache_options) do |item|
           writer = new_json_writer
-          non_cached_write_one(writer, item, options)
+          non_cached_write_one(writer, item, serializer_options)
           writer.to_json
         end.values
         external_writer.push_json("#{OjSerializers::JsonValue.array(cached_items)}\n") # Oj.dump expects a new line terminator.
@@ -316,7 +314,14 @@ protected
 
       define_serialization_shortcuts
     end
-    alias_method :cached_with_key, :cached
+
+    def cached_with_key(cache_key_proc)
+      cached(cache_key: cache_key_proc)
+    end
+
+    def cached_with_options(options)
+      cached(options: options)
+    end
 
     def define_serialization_shortcuts(format = _default_format)
       case format
