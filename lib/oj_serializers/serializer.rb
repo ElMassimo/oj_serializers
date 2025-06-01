@@ -469,7 +469,8 @@ protected
     def many?(item)
       item.is_a?(Array) ||
         (defined?(ActiveRecord::Relation) && item.is_a?(ActiveRecord::Relation)) ||
-        (defined?(Mongoid::Association::Many) && item.is_a?(Mongoid::Association::Many))
+        (defined?(Mongoid::Association::Many) && item.is_a?(Mongoid::Association::Many)) ||
+        (defined?(ActiveHash::Relation) && item.is_a?(ActiveHash::Relation))
     end
 
     # Internal: We generate code for the serializer to avoid the overhead of
