@@ -475,7 +475,11 @@ protected
     # Internal: Whether the object should be serialized as a collection.
     def many?(item)
       KNOWN_COLLECTION_CLASS_NAMES.any? do |class_name|
-        defined?(class_name.constantize) && item.is_a?(class_name.constantize)
+        begin
+          item.is_a?(class_name.constantize)
+        rescue NameError
+          false
+        end
       end
     end
 
