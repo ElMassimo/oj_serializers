@@ -36,6 +36,13 @@ class OjSerializers::Serializer
     serializer
   ].to_set
 
+  KNOWN_COLLECTION_CLASS_NAMES = %w[
+    Array
+    ActiveRecord::Relation
+    Mongoid::Association::Many
+    ActiveHash::Relation
+  ]
+
   CACHE = (defined?(Rails) && Rails.cache) ||
           (defined?(ActiveSupport::Cache::MemoryStore) ? ActiveSupport::Cache::MemoryStore.new : OjSerializers::Memo.new)
 
@@ -467,9 +474,13 @@ protected
 
     # Internal: Whether the object should be serialized as a collection.
     def many?(item)
-      item.is_a?(Array) ||
-        (defined?(ActiveRecord::Relation) && item.is_a?(ActiveRecord::Relation)) ||
-        (defined?(Mongoid::Association::Many) && item.is_a?(Mongoid::Association::Many))
+      KNOWN_COLLECTION_CLASS_NAMES.any? do |class_name|
+        begin
+          item.is_a?(class_name.constantize)
+        rescue NameError
+          false
+        end
+      end
     end
 
     # Internal: We generate code for the serializer to avoid the overhead of
