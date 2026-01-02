@@ -713,7 +713,13 @@ protected
       if sort_by == :name
         sort_by = ->(name, options, _) { options[:identifier] ? "__#{name}" : name }
       elsif !sort_by || sort_by == :definition
-        sort_by = ->(name, options, index) { options[:identifier] ? "__#{name}" : "zzz#{index}" }
+        sort_by = ->(name, options, index) {
+          if options[:identifier]
+            0 - (_attributes.count - index)
+          else
+            index
+          end
+        }
       end
 
       attributes.sort_by.with_index { |(name, options), index| sort_by.call(name, options, index) }.to_h
