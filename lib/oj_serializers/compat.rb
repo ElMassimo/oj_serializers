@@ -18,28 +18,28 @@ class ActiveModel::Serializer
   # OjSerializer: Used internally to write a single object association in :hash mode.
   #
   # Returns nothing.
-  def self.one_as_hash(object)
+  def self.one_as_hash(object, options = nil)
     new(object)
   end
 
   # OjSerializer: Used internally to write an association in :hash mode.
   #
   # Returns nothing.
-  def self.many_as_hash(array)
+  def self.many_as_hash(array, options = nil)
     array.map { |object| new(object) }
   end
 
   # OjSerializer: Used internally to write a single object association in :json mode.
   #
   # Returns nothing.
-  def self.write_one(writer, object)
+  def self.write_one(writer, object, options = nil)
     writer.push_value(new(object))
   end
 
   # OjSerializer: Used internally to write an association in :json mode.
   #
   # Returns nothing.
-  def self.write_many(writer, array)
+  def self.write_many(writer, array, options = nil)
     writer.push_array
     array.each do |object|
       write_one(writer, object)

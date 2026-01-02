@@ -607,17 +607,17 @@ protected
         <<~WRITE_ONE
           if __value = #{value}
             writer.push_key('#{key}')
-            #{serializer_class}.write_one(writer, __value)
+            #{serializer_class}.write_one(writer, __value, options)
           end
         WRITE_ONE
       when :many
         <<~WRITE_MANY
           writer.push_key('#{key}')
-          #{serializer_class}.write_many(writer, #{value})
+          #{serializer_class}.write_many(writer, #{value}, options)
         WRITE_MANY
       when :flat
         <<~WRITE_FLAT
-          #{serializer_class}.write_to_json(writer, #{value})
+          #{serializer_class}.write_to_json(writer, #{value}, options)
         WRITE_FLAT
       else
         raise ArgumentError, "Unknown association type: #{type.inspect}"
@@ -666,11 +666,11 @@ protected
 
       case type = options.fetch(:association)
       when :one
-        "#{key}: (__value = #{value}) ? #{serializer_class}.one_as_hash(__value) : nil"
+        "#{key}: (__value = #{value}) ? #{serializer_class}.one_as_hash(__value, options) : nil"
       when :many
-        "#{key}: #{serializer_class}.many_as_hash(#{value})"
+        "#{key}: #{serializer_class}.many_as_hash(#{value}, options)"
       when :flat
-        "**#{serializer_class}.one_as_hash(#{value})"
+        "**#{serializer_class}.one_as_hash(#{value}, options)"
       else
         raise ArgumentError, "Unknown association type: #{type.inspect}"
       end
