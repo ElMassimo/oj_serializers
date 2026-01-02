@@ -25,10 +25,6 @@ jobs:
         ]
         experimental: [false]
         include:
-          - ruby: "2.7"
-            os: ubuntu-latest
-            gemfile: Gemfile-rails.6.1.x
-            experimental: false
           - ruby: "3.3"
             os: ubuntu-latest
             gemfile: Gemfile-rails.7.2.x

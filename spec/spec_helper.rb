@@ -7,7 +7,6 @@ SimpleCov.start { add_filter '/spec/' }
 
 require 'bundler/setup'
 require 'oj_serializers'
-require 'pry-byebug'
 require 'bson'
 
 class BSON::ObjectId
