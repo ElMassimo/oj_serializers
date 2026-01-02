@@ -34,7 +34,7 @@ RSpec.describe 'Memory Usage', :benchmark do
     entries = report.comparison.entries
     oj1, oj2, *rest = entries.map(&:label)
     expect([oj1, oj2]).to contain_exactly(*%w[oj_hash oj])
-    expect(rest).to eq %w[panko blueprinter ams alba]
+    expect(rest).to eq %w[panko alba blueprinter ams]
     expect(allocated_by(entries.first) / allocated_by(entries.last)).to be < 0.365
   end
 
@@ -50,7 +50,7 @@ RSpec.describe 'Memory Usage', :benchmark do
       x.compare!
     end
     entries = report.comparison.entries
-    expect(entries.map(&:label)).to eq %w[oj oj_hash panko blueprinter ams alba]
+    expect(entries.map(&:label)).to eq %w[oj panko oj_hash alba blueprinter ams]
     expect(allocated_by(entries.first) / allocated_by(entries.last)).to be < 0.33
   end
 end
