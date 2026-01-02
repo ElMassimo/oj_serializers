@@ -3,7 +3,6 @@ name: Rubocop
 on:
   push:
     branches:
-      - master
       - main
   pull_request:
     branches:
@@ -12,20 +11,13 @@ on:
 jobs:
   build:
     name: Rubocop
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        ruby: [
-          "3.0"
-        ]
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
       - name: Rubocop

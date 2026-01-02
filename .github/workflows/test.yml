@@ -3,7 +3,6 @@ name: build
 on:
   push:
     branches:
-      - master
       - main
   pull_request:
     branches:
@@ -19,12 +18,10 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         ruby: [
-          "3.0",
-          "3.1"
+          "3.4.5"
         ]
         gemfile: [
-          "Gemfile-rails.6.1.x",
-          "Gemfile-rails.7.0.x"
+          "Gemfile-rails.8.0.x"
         ]
         experimental: [false]
         include:
@@ -32,11 +29,11 @@ jobs:
             os: ubuntu-latest
             gemfile: Gemfile-rails.6.1.x
             experimental: false
-          - ruby: "3.2"
+          - ruby: "3.3"
             os: ubuntu-latest
-            gemfile: Gemfile-rails.7.0.x
+            gemfile: Gemfile-rails.7.2.x
             experimental: false
-          - ruby: "3.2"
+          - ruby: "4.0"
             os: ubuntu-latest
             gemfile: Gemfile-rails-edge
             experimental: true
@@ -52,19 +49,16 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
 
-      - name: Setup Code Climate test-reporter
-        run: |
-          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-          chmod +x ./cc-test-reporter
-          ./cc-test-reporter before-build
-
       - name: Run tests
         run: bin/rspec
 
-      - name: Upload code coverage to Code Climate
-        run: |
-          export GIT_BRANCH="${GITHUB_REF/refs\/heads\//}"
-          ./cc-test-reporter after-build -r ${{secrets.CC_TEST_REPORTER_ID}}
+      - name: Upload code coverage to qlty
+        if: ${{ contains(github.ref, 'main') }}
+        uses: qltysh/qlty-action/coverage@v1
+        with:
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: coverage/.resultset.json
+          format: simplecov
 
       - name: Upload coverage results to GitHub
         uses: actions/upload-artifact@main
