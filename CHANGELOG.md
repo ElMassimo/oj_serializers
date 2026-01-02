@@ -1,3 +1,9 @@
+## Oj Serializers 3.0.0 (2026-01-02)
+
+### Features ✨
+
+- [Pass user options to children associations](https://github.com/ElMassimo/oj_serializers/commit/d495f06)
+
 ## Oj Serializers 2.1.0 (2026-01-02)
 
 ### Fixes 🐞
