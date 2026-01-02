@@ -1,3 +1,9 @@
+## Oj Serializers 2.1.0 (2026-01-02)
+
+### Fixes 🐞
+
+- [Improve sorting by :definition with more than 10 attributes in the list](https://github.com/ElMassimo/oj_serializers/commit/d58cb81) (#25)
+
 ## Oj Serializers 2.0.3 (2023-04-19)
 
 ### Features ✨
