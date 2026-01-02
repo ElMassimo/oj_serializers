@@ -2,6 +2,15 @@
 
 require 'spec_helper'
 require 'rails/all'
+
+Time.zone = 'UTC'
+
+class RSpec::Core::ExampleGroup
+  class << self
+    attr_accessor :fixture_path
+  end
+end
+
 require 'rspec/rails'
 
 require 'support/controllers/albums_controller'

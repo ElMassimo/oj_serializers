@@ -25,7 +25,7 @@ module OjSerializers::ControllerSerialization
       if serializer_class && serializer_class < OjSerializers::Serializer
         super(OjSerializers::JsonStringEncoder.encode_to_json(resource, **options), options.except(:root, :serializer, :each_serializer))
       else
-        super(resource, **options)
+        super(resource, options)
       end
     end
   end
