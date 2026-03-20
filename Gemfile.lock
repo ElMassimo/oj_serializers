@@ -2,7 +2,6 @@ PATH
   remote: .
   specs:
     oj_serializers (3.0.0)
-      oj (>= 3.14.0)
 
 GEM
   remote: https://rubygems.org/
