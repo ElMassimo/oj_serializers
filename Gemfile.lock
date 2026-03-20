@@ -90,7 +90,7 @@ GEM
     benchmark-ips (2.14.0)
     benchmark-memory (0.2.0)
       memory_profiler (~> 1)
-    bigdecimal (3.2.2)
+    bigdecimal (4.0.1)
     blueprinter (0.30.0)
     bson (5.1.1)
     builder (3.3.0)
@@ -116,7 +116,7 @@ GEM
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.12.2)
+    json (2.19.2)
     jsonapi-renderer (0.2.2)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
@@ -155,10 +155,10 @@ GEM
       racc (~> 1.4)
     nokogiri (1.18.8-x86_64-linux-gnu)
       racc (~> 1.4)
-    oj (3.16.11)
+    oj (3.16.16)
       bigdecimal (>= 3.0)
       ostruct (>= 0.2)
-    ostruct (0.6.2)
+    ostruct (0.6.3)
     panko_serializer (0.8.3)
       activesupport
       oj (> 3.11.0, < 4.0.0)
@@ -310,4 +310,4 @@ DEPENDENCIES
   sqlite3
 
 BUNDLED WITH
-   2.3.22
+   2.7.2

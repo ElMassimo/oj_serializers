@@ -4,7 +4,6 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/string/inflections'
 
-require 'oj'
 require 'oj_serializers/memo'
 require 'oj_serializers/json_value'
 
@@ -330,7 +329,11 @@ protected
 
     # Internal: The writer to use to write to json
     def new_json_writer
-      Oj::StringWriter.new(mode: :rails)
+      if defined?(Oj::StringWriter)
+        Oj::StringWriter.new(mode: :rails)
+      else
+        OjSerializers::JsonWriter.new
+      end
     end
 
     # Public: Identifiers are always serialized first.
@@ -729,4 +732,9 @@ protected
   default_format :hash
 end
 
-Oj::Serializer = OjSerializers::Serializer unless defined?(Oj::Serializer)
+unless defined?(Oj::Serializer)
+  # When oj is not loaded, create the Oj module as a namespace so that
+  # existing serializers inheriting from Oj::Serializer continue to work.
+  Object.const_set(:Oj, Module.new) unless defined?(Oj)
+  Oj::Serializer = OjSerializers::Serializer
+end

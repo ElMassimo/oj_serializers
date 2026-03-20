@@ -27,8 +27,19 @@ class OjSerializers::JsonValue
     @json
   end
 
+  # Internal: Return the raw JSON string for JSON.generate compatibility.
+  def to_json(_options = nil)
+    @json
+  end
+
   # Internal: Used by Oj::Rails::Encoder when found inside a Hash or Array.
+  # When oj is not loaded, returns a JSON::Fragment so JSON.generate embeds
+  # the pre-encoded string directly.
   def as_json(_options = nil)
-    self
+    if !defined?(Oj) && defined?(JSON::Fragment)
+      JSON::Fragment.new(@json)
+    else
+      self
+    end
   end
 end
