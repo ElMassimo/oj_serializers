@@ -45,8 +45,7 @@ RSpec.describe 'GameSerializer', :benchmark do
     it 'serializing a model' do
       game = Game.example
 
-      Benchmark.ips do |x|
-        x.config(time: 5, warmup: 2)
+      benchmark_section('GameSerializer: single model') do |x|
         x.report('json_serializers') do
           JSON.generate(GameSerializer.one(game))
         end

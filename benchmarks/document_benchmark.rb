@@ -6,8 +6,7 @@ RSpec.describe 'Document Accessors', :benchmark do
   let(:album) { Album.abraxas }
 
   it 'getters performance' do
-    Benchmark.ips do |x|
-      x.config(time: 2, warmup: 1)
+    benchmark_section('Document Accessors', time: 2, warmup: 1) do |x|
       x.report('album.name') { album.name }
       x.report("album['name']") { album['name'] }
       x.report("album.attributes['name']") { album.attributes['name'] }

@@ -15,8 +15,7 @@ RSpec.describe 'AlbumSerializer', :benchmark do
 
     it 'serializing a model' do
       album = Album.abraxas
-      Benchmark.ips do |x|
-        x.config(time: 5, warmup: 2)
+      benchmark_section('AlbumSerializer: single model') do |x|
         x.report('json_serializers') do
           JSON.generate(AlbumSerializer.one(album))
         end
@@ -27,7 +26,7 @@ RSpec.describe 'AlbumSerializer', :benchmark do
           AlbumBlueprint.render(album)
         end
         x.report('active_model_serializers') do
-          JSON.generate(LegacyAlbumSerializer.new(album))
+          JSON.generate(LegacyAlbumSerializer.new(album).as_json)
         end
         x.report('alba') do
           AlbumAlba.new(album).serialize
@@ -38,8 +37,7 @@ RSpec.describe 'AlbumSerializer', :benchmark do
 
     it 'serializing a collection' do
       albums = 100.times.map { Album.abraxas }
-      Benchmark.ips do |x|
-        x.config(time: 5, warmup: 2)
+      benchmark_section('AlbumSerializer: 100 albums') do |x|
         x.report('json_serializers') do
           JSON.generate(AlbumSerializer.many(albums))
         end
@@ -50,7 +48,7 @@ RSpec.describe 'AlbumSerializer', :benchmark do
           AlbumBlueprint.render(albums)
         end
         x.report('active_model_serializers') do
-          JSON.generate(albums.map { |album| LegacyAlbumSerializer.new(album) })
+          JSON.generate(albums.map { |album| LegacyAlbumSerializer.new(album).as_json })
         end
         x.report('alba') do
           AlbumAlba.new(albums).serialize
@@ -61,8 +59,7 @@ RSpec.describe 'AlbumSerializer', :benchmark do
 
     it 'serializing a large collection' do
       albums = 1000.times.map { Album.abraxas }
-      Benchmark.ips do |x|
-        x.config(time: 5, warmup: 2)
+      benchmark_section('AlbumSerializer: 1000 albums') do |x|
         x.report('json_serializers') do
           JSON.generate(AlbumSerializer.many(albums))
         end
@@ -73,7 +70,7 @@ RSpec.describe 'AlbumSerializer', :benchmark do
           AlbumBlueprint.render(albums)
         end
         x.report('active_model_serializers') do
-          JSON.generate(albums.map { |album| LegacyAlbumSerializer.new(album) })
+          JSON.generate(albums.map { |album| LegacyAlbumSerializer.new(album).as_json })
         end
         x.report('alba') do
           AlbumAlba.new(albums).serialize

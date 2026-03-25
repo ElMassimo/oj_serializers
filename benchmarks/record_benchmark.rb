@@ -7,8 +7,7 @@ RSpec.describe 'Record Accessors', :benchmark do
   let(:player) { Game.example.players.first }
 
   it 'getters performance' do
-    Benchmark.ips do |x|
-      x.config(time: 2, warmup: 1)
+    benchmark_section('Record Accessors', time: 2, warmup: 1) do |x|
       x.report('player.first_name') { player.first_name }
       x.report('player.send(:first_name)') { player.send(:first_name) }
       x.report("player['first_name']") { player['first_name'] }
