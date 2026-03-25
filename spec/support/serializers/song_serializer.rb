@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class SongSerializer < Oj::Serializer
+class SongSerializer < JsonSerializer
   mongo_attributes(
     :id,
     :track,

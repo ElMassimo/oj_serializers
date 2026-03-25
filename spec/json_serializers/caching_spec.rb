@@ -21,7 +21,7 @@ RSpec.describe 'Caching', type: :serializer do
 
   before do
     # NOTE: Uncomment to debug test failures.
-    # Oj::Serializer::CACHE.logger = ActiveSupport::Logger.new(STDOUT)
+    # JsonSerializers::Serializer::CACHE.logger = ActiveSupport::Logger.new(STDOUT)
   end
 
   it 'should reuse the cache effectively' do
@@ -45,22 +45,5 @@ RSpec.describe 'Caching', type: :serializer do
     expect_parsed_json(CachedAlbumSerializer.one(album)).to eq attrs
     expect_parsed_json(CachedAlbumSerializer.one(other_album)).to eq other_attrs
     expect_parsed_json(CachedAlbumSerializer.many(albums)).to eq [attrs, other_attrs]
-  end
-
-  it 'should reuse the cache effectively for JSON' do
-    attrs = parse_json(AlbumSerializer.one_as_json(album))
-    expect(attrs).to include(name: album.name)
-    other_attrs = parse_json(AlbumSerializer.one_as_json(other_album))
-    expect(other_attrs).to eq(name: 'Amigos', release: 'March 26, 1976', genres: nil, songs: [])
-
-    expect(album).to receive(:release_date).once.and_call_original
-    expect(other_album).to receive(:release_date).once.and_call_original
-    expect_parsed_json(CachedAlbumSerializer.one_as_json(album)).to eq attrs
-    expect_parsed_json(CachedAlbumSerializer.one_as_json(other_album)).to eq other_attrs
-
-    expect_any_instance_of(Album).not_to receive(:release_date)
-    expect_parsed_json(CachedAlbumSerializer.one_as_json(album)).to eq attrs
-    expect_parsed_json(CachedAlbumSerializer.one_as_json(other_album)).to eq other_attrs
-    expect_parsed_json(CachedAlbumSerializer.many_as_json(albums)).to eq [attrs, other_attrs]
   end
 end

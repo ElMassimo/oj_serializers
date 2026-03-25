@@ -1,16 +1,16 @@
-## Oj Serializers 3.0.0 (2026-01-02)
+## JSON Serializers 3.0.0 (2026-01-02)
 
 ### Features ✨
 
 - [Pass user options to children associations](https://github.com/ElMassimo/oj_serializers/commit/d495f06)
 
-## Oj Serializers 2.1.0 (2026-01-02)
+## JSON Serializers 2.1.0 (2026-01-02)
 
 ### Fixes 🐞
 
 - [Improve sorting by :definition with more than 10 attributes in the list](https://github.com/ElMassimo/oj_serializers/commit/d58cb81) (#25)
 
-## Oj Serializers 2.0.3 (2023-04-19)
+## JSON Serializers 2.0.3 (2023-04-19)
 
 ### Features ✨
 
@@ -20,7 +20,7 @@
 
 - [Allow using `active_model_serializers` in associations](https://github.com/ElMassimo/oj_serializers/commit/501ed4014b564e6f103d2f52d15832fe6706d6a8)
 
-## Oj Serializers 2.0.2 (2023-04-02)
+## JSON Serializers 2.0.2 (2023-04-02)
 
 ### Features ✨
 
@@ -30,7 +30,7 @@
 
 - [Error when defining attributes with options](https://github.com/ElMassimo/oj_serializers/commit/680ab47)
 
-## Oj Serializers 2.0.1 (2023-04-02)
+## JSON Serializers 2.0.1 (2023-04-02)
 
 ### Features ✨
 
@@ -41,7 +41,7 @@
 
 - [Aliased attributes should be sorted by the output key](https://github.com/ElMassimo/oj_serializers/commit/fc6f4c1)
 
-## [Oj Serializers 2.0.0 (2023-03-27)](https://github.com/ElMassimo/oj_serializers/pull/9)
+## [JSON Serializers 2.0.0 (2023-03-27)](https://github.com/ElMassimo/oj_serializers/pull/9)
 
 ### Features ✨
 
@@ -54,20 +54,18 @@
 
 ### Breaking Changes
 
-Since returning a `Hash` is more convenient than returning a `Oj::StringWriter`, and performance is comparable, `default_format :hash` is now the default.
+Since returning a `Hash` is more convenient and performance is comparable, `default_format :hash` is now the default.
 
-The previous APIs will still be available as `one_as_json` and `many_as_json`, as well as `default_format :json` to make the library work like in version 1.
-
-## Oj Serializers 1.0.2 (2023-03-01) ##
+## JSON Serializers 1.0.2 (2023-03-01) ##
 
 *   [fix: avoid freezing `ALLOWED_INSTANCE_VARIABLES`](https://github.com/ElMassimo/oj_serializers/commit/ade0302)
 
 
-## Oj Serializers 1.0.1 (2023-03-01) ##
+## JSON Serializers 1.0.1 (2023-03-01) ##
 
 *   [fix: avoid caching instances of reloaded classes in development](https://github.com/ElMassimo/oj_serializers/commit/0bd928d64d159926acf6b4d57e3f08b12f6931ce)
 
 
-## Oj Serializers 1.0.0 (2020-11-05) ##
+## JSON Serializers 1.0.0 (2020-11-05) ##
 
 *   Initial Release.

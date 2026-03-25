@@ -5,17 +5,15 @@
 [readme]: https://github.com/ElMassimo/oj_serializers/blob/main/README.md
 [attributes dsl]: https://github.com/ElMassimo/oj_serializers/blob/main/README.md#attributes-dsl-
 
-[oj]: https://github.com/ohler55/oj
 [ams]: https://github.com/rails-api/active_model_serializers
 [jsonapi]: https://github.com/jsonapi-serializer/jsonapi-serializer
 [panko]: https://github.com/panko-serializer/panko_serializer
 [benchmarks]: https://github.com/ElMassimo/oj_serializers/tree/master/benchmarks
 [raw_benchmarks]: https://github.com/ElMassimo/oj_serializers/blob/main/benchmarks/document_benchmark.rb
 [migration guide]: https://github.com/ElMassimo/oj_serializers/blob/main/MIGRATION_GUIDE.md
-[raw_json]: https://github.com/ohler55/oj/issues/542
 [trailing_commas]: https://maximomussini.com/posts/trailing-commas/
 
-The DSL of `oj_serializers` is meant to be similar to the one provided by `active_model_serializers` to make the migration process simple,
+The DSL of `json_serializers` is meant to be similar to the one provided by `active_model_serializers` to make the migration process simple,
 though the goal is not to be a drop-in replacement.
 
 ## Rendering 🛠
@@ -24,7 +22,7 @@ To use the same format in controllers, using the `root`, `serializer`, `each_ser
 
 ```ruby
 # config/initializers/json.rb
-require 'oj_serializers/compat'
+require 'json_serializers/compat'
 ```
 
 Otherwise, use `one` and `many` to serialize objects or enumerables:
@@ -80,7 +78,7 @@ end
 
 # becomes
 
-class AlbumSerializer < Oj::Serializer
+class AlbumSerializer < JsonSerializer
   ams_attributes :name, :release
 
   # The serializer class must be explicitly provided.
@@ -102,7 +100,7 @@ Once your serializer is working as expected, you can further refactor it to be m
 Being explicit about where the attributes are coming from makes the serializers easier to understand and more maintainable.
 
 ```ruby
-class AlbumSerializer < Oj::Serializer
+class AlbumSerializer < JsonSerializer
   attributes :name
 
   has_many :songs, serializer: SongSerializer
@@ -140,7 +138,7 @@ In case you need to access path helpers in your serializers, you can use the
 following:
 
 ```ruby
-class BaseJsonSerializer < Oj::Serializer
+class BaseJsonSerializer < JsonSerializer
   include Rails.application.routes.url_helpers
 
   def default_url_options
@@ -165,7 +163,7 @@ class ApplicationController < ActionController::Base
   before_action { Thread.current[:current_controller] = self }
 end
 
-class BaseJsonSerializer < Oj::Serializer
+class BaseJsonSerializer < JsonSerializer
   def scope
     @scope ||= Thread.current[:current_controller]
   end

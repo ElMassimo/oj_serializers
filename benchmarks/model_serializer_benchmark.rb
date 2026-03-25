@@ -11,11 +11,8 @@ RSpec.describe 'ModelSerializer', :benchmark do
     it 'serializing models' do
       Benchmark.ips do |x|
         x.config(time: 5, warmup: 2)
-        x.report('oj_serializers') do
-          Oj.dump ModelSerializer.many(albums)
-        end
-        x.report('oj_serializers hash') do
-          Oj.dump ModelSerializer.many_as_hash(albums)
+        x.report('json_serializers') do
+          JSON.generate(ModelSerializer.many(albums))
         end
         x.report('panko') do
           Panko::ArraySerializer.new(albums, each_serializer: ModelPanko).to_json
@@ -27,7 +24,7 @@ RSpec.describe 'ModelSerializer', :benchmark do
           ModelBlueprint.render(albums)
         end
         x.report('active_model_serializers') do
-          Oj.dump(albums.map { |album| ActiveModelSerializer.new(album) })
+          JSON.generate(albums.map { |album| ActiveModelSerializer.new(album) })
         end
         x.compare!
       end

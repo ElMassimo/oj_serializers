@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Internal: Provides a simple API on top of Hash for memoization purposes.
-class OjSerializers::Memo
+class JsonSerializers::Memo
   def initialize
     @cache = {}
   end

@@ -1,17 +1,16 @@
 <h1 align="center">
-Oj Serializers
+JSON Serializers
 <p align="center">
 <a href="https://github.com/ElMassimo/oj_serializers/actions"><img alt="Build Status" src="https://github.com/ElMassimo/oj_serializers/workflows/build/badge.svg"/></a>
 <a href="https://codeclimate.com/github/ElMassimo/oj_serializers"><img alt="Maintainability" src="https://codeclimate.com/github/ElMassimo/oj_serializers/badges/gpa.svg"/></a>
 <a href="https://codeclimate.com/github/ElMassimo/oj_serializers"><img alt="Test Coverage" src="https://codeclimate.com/github/ElMassimo/oj_serializers/badges/coverage.svg"/></a>
-<a href="https://rubygems.org/gems/oj_serializers"><img alt="Gem Version" src="https://img.shields.io/gem/v/oj_serializers.svg?colorB=e9573f"/></a>
+<a href="https://rubygems.org/gems/json_serializers"><img alt="Gem Version" src="https://img.shields.io/gem/v/json_serializers.svg?colorB=e9573f"/></a>
 <a href="https://github.com/ElMassimo/oj_serializers/blob/main/LICENSE.txt"><img alt="License" src="https://img.shields.io/badge/license-MIT-428F7E.svg"/></a>
 </p>
 </h1>
 
-Faster JSON serializers for Ruby, built on top of the powerful [`oj`][oj] library.
+Fast, memory-efficient JSON serializers for Ruby and Rails.
 
-[oj]: https://github.com/ohler55/oj
 [mongoid]: https://github.com/mongodb/mongoid
 [ams]: https://github.com/rails-api/active_model_serializers
 [jsonapi]: https://github.com/jsonapi-serializer/jsonapi-serializer
@@ -19,12 +18,11 @@ Faster JSON serializers for Ruby, built on top of the powerful [`oj`][oj] librar
 [blueprinter]: https://github.com/procore/blueprinter
 [benchmarks]: https://github.com/ElMassimo/oj_serializers/tree/master/benchmarks
 [raw_benchmarks]: https://github.com/ElMassimo/oj_serializers/blob/main/benchmarks/document_benchmark.rb
-[sugar]: https://github.com/ElMassimo/oj_serializers/blob/main/lib/oj_serializers/sugar.rb#L14
+[sugar]: https://github.com/ElMassimo/oj_serializers/blob/main/lib/json_serializers/sugar.rb#L14
 [migration guide]: https://github.com/ElMassimo/oj_serializers/blob/main/MIGRATION_GUIDE.md
 [design]: https://github.com/ElMassimo/oj_serializers#design-
 [associations]: https://github.com/ElMassimo/oj_serializers#associations-
 [compose]: https://github.com/ElMassimo/oj_serializers#composing-serializers-
-[raw_json]: https://github.com/ohler55/oj/issues/542
 [trailing_commas]: https://maximomussini.com/posts/trailing-commas/
 [render dsl]: https://github.com/ElMassimo/oj_serializers#render-dsl-
 [sorbet]: https://sorbet.org/
@@ -33,16 +31,16 @@ Faster JSON serializers for Ruby, built on top of the powerful [`oj`][oj] librar
 [types_from_serializers]: https://github.com/ElMassimo/types_from_serializers
 [inheritance]: https://github.com/ElMassimo/types_from_serializers/blob/main/playground/vanilla/app/serializers/song_with_videos_serializer.rb#L1
 
-## Why? 🤔
+## Why?
 
 [`ActiveModel::Serializer`][ams] has a nice DSL, but it allocates many objects
 leading to memory bloat, time spent on GC, and lower performance.
 
-`Oj::Serializer` provides a similar API, with [better performance][benchmarks].
+`JsonSerializer` provides a similar API, with [better performance][benchmarks].
 
 Learn more about [how this library achieves its performance][design].
 
-## Features ⚡️
+## Features
 
 - Intuitive declaration syntax, supporting mixins and inheritance
 - Reduced [memory allocation][benchmarks] and [improved performance][benchmarks]
@@ -51,25 +49,25 @@ Learn more about [how this library achieves its performance][design].
 - Useful development checks to avoid typos and mistakes
 - [Migrate easily from Active Model Serializers][migration guide]
 
-## Installation 💿
+## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'oj_serializers'
+gem 'json_serializers'
 ```
 
 And then run:
 
     $ bundle install
 
-## Usage 🚀
+## Usage
 
-You can define a serializer by subclassing `Oj::Serializer`, and specify which
+You can define a serializer by subclassing `JsonSerializer`, and specify which
 attributes should be serialized.
 
 ```ruby
-class AlbumSerializer < Oj::Serializer
+class AlbumSerializer < JsonSerializer
   attributes :name, :genres
 
   attribute :release do
@@ -162,13 +160,13 @@ end
   <summary>Active Model Serializers style</summary>
 
 ```ruby
-require "oj_serializers/sugar" # In an initializer
+require "json_serializers/sugar" # In an initializer
 
 class AlbumsController < ApplicationController
   def show
     render json: album, serializer: AlbumSerializer
   end
-  
+
   def index
     render json: albums, root: :albums, each_serializer: AlbumSerializer
   end
@@ -176,7 +174,7 @@ end
 ```
 </details>
 
-## Rendering 🖨
+## Rendering
 
 Use `one` to serialize objects, and `many` to serialize enumerables:
 
@@ -200,12 +198,12 @@ render json: {
 }
 ```
 
-## Attributes DSL 🪄
+## Attributes DSL
 
 Specify which attributes should be rendered by calling a method in the object to serialize.
 
 ```ruby
-class PlayerSerializer < Oj::Serializer
+class PlayerSerializer < JsonSerializer
   attributes :first_name, :last_name, :full_name
 end
 ```
@@ -213,7 +211,7 @@ end
 You can serialize custom values by specifying that a method is an `attribute`:
 
 ```ruby
-class PlayerSerializer < Oj::Serializer
+class PlayerSerializer < JsonSerializer
   attribute :name do
     "#{player.first_name} #{player.last_name}"
   end
@@ -234,14 +232,14 @@ end
 > You can customize this by using [`object_as`](#using-a-different-alias-for-the-internal-object).
 
 
-### Associations 🔗
+### Associations
 
 Use `has_one` to serialize individual objects, and `has_many` to serialize a collection.
 
 You must specificy which serializer to use with the `serializer` option.
 
 ```ruby
-class SongSerializer < Oj::Serializer
+class SongSerializer < JsonSerializer
   has_one :album, serializer: AlbumSerializer
   has_many :composers, serializer: ComposerSerializer
 end
@@ -250,7 +248,7 @@ end
 Specify a different value for the association by providing a block:
 
 ```ruby
-class SongSerializer < Oj::Serializer
+class SongSerializer < JsonSerializer
   has_one :album, serializer: AlbumSerializer do
     Album.find_by(song_ids: song.id)
   end
@@ -260,20 +258,20 @@ end
 In case you need to pass options, you can call the serializer manually:
 
 ```ruby
-class SongSerializer < Oj::Serializer
+class SongSerializer < JsonSerializer
   attribute :album do
     AlbumSerializer.one(song.album, for_song: song)
   end
 end
 ```
 
-### Aliasing or renaming attributes ↔️
+### Aliasing or renaming attributes
 
 You can pass `as` when defining an attribute or association to serialize it
 using a different key:
 
 ```ruby
-class SongSerializer < Oj::Serializer
+class SongSerializer < JsonSerializer
   has_one :album, as: :first_release, serializer: AlbumSerializer
 
   attributes title: {as: :name}
@@ -283,12 +281,12 @@ class SongSerializer < Oj::Serializer
 end
 ```
 
-### Conditional attributes ❔
+### Conditional attributes
 
 You can render attributes and associations conditionally by using `:if`.
 
 ```ruby
-class PlayerSerializer < Oj::Serializer
+class PlayerSerializer < JsonSerializer
   attributes :first_name, :last_name, if: -> { player.display_name? }
 
   has_one :album, serializer: AlbumSerializer, if: -> { player.album }
@@ -297,7 +295,7 @@ end
 
 This is useful in cases where you don't want to `null` values to be in the response.
 
-## Advanced Usage 🧙‍♂️
+## Advanced Usage
 
 ### Using a different alias for the internal object
 
@@ -306,7 +304,7 @@ In most cases, the default alias for the `object` will be convenient enough.
 However, if you would like to specify it manually, use `object_as`:
 
 ```ruby
-class DiscographySerializer < Oj::Serializer
+class DiscographySerializer < JsonSerializer
   object_as :artist
 
   # Now we can use `artist` instead of `object` or `discography`.
@@ -323,7 +321,7 @@ The `identifier` method allows you to only include an identifier if the record
 or document has been persisted.
 
 ```ruby
-class AlbumSerializer < Oj::Serializer
+class AlbumSerializer < JsonSerializer
   identifier
 
   # or if it's a different field
@@ -334,7 +332,7 @@ end
 Additionally, identifier fields are always rendered first, even when sorting
 fields alphabetically.
 
-### Transforming attribute keys 🗝
+### Transforming attribute keys
 
 When serialized data will be consumed from a client language that has different
 naming conventions, it can be convenient to transform keys accordingly.
@@ -345,7 +343,7 @@ where properties are traditionally named using camel case.
 Use `transform_keys` to handle that conversion.
 
 ```ruby
-class BaseSerializer < Oj::Serializer
+class BaseSerializer < JsonSerializer
   transform_keys :camelize
 
   # shortcut for
@@ -355,7 +353,7 @@ end
 
 This has no performance impact, as keys will be transformed at load time.
 
-### Sorting attributes 📶
+### Sorting attributes
 
 By default attributes are rendered in the order they are defined.
 
@@ -363,20 +361,20 @@ If you would like to sort attributes alphabetically, you can specify it at a
 serializer level:
 
 ```ruby
-class BaseSerializer < Oj::Serializer
+class BaseSerializer < JsonSerializer
   sort_attributes_by :name # or a Proc
 end
 ```
 
 This has no performance impact, as attributes will be sorted at load time.
 
-### Path helpers 🛣
+### Path helpers
 
 In case you need to access path helpers in your serializers, you can use the
 following:
 
 ```ruby
-class BaseSerializer < Oj::Serializer
+class BaseSerializer < JsonSerializer
   include Rails.application.routes.url_helpers
 
   def default_url_options
@@ -389,7 +387,7 @@ One slight variation that might make it easier to maintain in the long term is
 to use a separate singleton service to provide the url helpers and options, and
 make it available as `urls`.
 
-### Generating TypeScript automatically 🤖
+### Generating TypeScript automatically
 
 It's easy for the backend and the frontend to become out of sync. Traditionally, preventing bugs requires writing extensive integration tests.
 
@@ -399,7 +397,7 @@ It's easy for the backend and the frontend to become out of sync. Traditionally,
 
 As a result, it's posible to easily detect mismatches between the backend and the frontend, as well as make the fields more discoverable and provide great autocompletion in the frontend, without having to manually write the types.
 
-### Composing serializers 🧱
+### Composing serializers
 
 There are three options to [compose serializers](https://github.com/ElMassimo/oj_serializers/discussions/10#discussioncomment-5523921): [inheritance], mixins, and `flat_one`.
 
@@ -444,7 +442,7 @@ sometimes it's convenient to store intermediate calculations.
 Use `memo` for memoization and storing temporary information.
 
 ```ruby
-class DownloadSerializer < Oj::Serializer
+class DownloadSerializer < JsonSerializer
   attributes :filename, :size
 
   attribute
@@ -462,12 +460,12 @@ private
 end
 ```
 
-### `hash_attributes` 🚀
+### `hash_attributes`
 
 Very convenient when serializing Hash-like structures, this strategy uses the `[]` operator.
 
 ```ruby
-class PersonSerializer < Oj::Serializer
+class PersonSerializer < JsonSerializer
   hash_attributes 'first_name', :last_name
 end
 
@@ -475,7 +473,7 @@ PersonSerializer.one('first_name' => 'Mary', :middle_name => 'Jane', :last_name 
 # {first_name: "Mary", last_name: "Watson"}
 ```
 
-### `mongo_attributes` 🚀
+### `mongo_attributes`
 
 Reads data directly from `attributes` in a [Mongoid] document.
 
@@ -485,12 +483,12 @@ Although there are some downsides, depending on how consistent your schema is,
 and which kind of consumer the API has, it can be really powerful.
 
 ```ruby
-class AlbumSerializer < Oj::Serializer
+class AlbumSerializer < JsonSerializer
   mongo_attributes :id, :name
 end
 ```
 
-### Caching 📦
+### Caching
 
 Usually rendering is so fast that __turning caching on can be slower__.
 
@@ -521,122 +519,19 @@ items to cache.
 
 This works specially well if your cache store also supports `write_multi`.
 
-### Writing to JSON
+## Design
 
-In some corner cases it might be faster to serialize using a `Oj::StringWriter`,
-which you can access by using `one_as_json` and `many_as_json`.
+Unlike `ActiveModel::Serializer`, which allocates a new serializer instance for
+every object being serialized, this library reuses a single instance per
+serializer class, greatly reducing memory allocation and GC pressure.
 
-Alternatively, you can toggle this mode at a serializer level by using
-`default_format :json`, or configure it globally from your base serializer:
-
-```ruby
-class BaseSerializer < Oj::Serializer
-  default_format :json
-end
-```
-
-This will change the default shortcuts (`render`, `one`, `one_if`, and `many`),
-so that the serializer writes directly to JSON instead of returning a Hash.
-
-Even when using this mode, you can still use rendered values inside arrays,
-hashes, and other serializers, thanks to [the `raw_json` extensions][raw_json].
-
-<details>
-  <summary>Example Output</summary>
-
-```json
-{
-  "name": "Abraxas",
-  "genres": [
-    "Pyschodelic Rock",
-    "Blues Rock",
-    "Jazz Fusion",
-    "Latin Rock"
-  ],
-  "release": "September 23, 1970",
-  "songs": [
-    {
-      "track": 1,
-      "name": "Sing Winds, Crying Beasts",
-      "composers": [
-        "Michael Carabello"
-      ]
-    },
-    {
-      "track": 2,
-      "name": "Black Magic Woman / Gypsy Queen",
-      "composers": [
-        "Peter Green",
-        "Gábor Szabó"
-      ]
-    },
-    {
-      "track": 3,
-      "name": "Oye como va",
-      "composers": [
-        "Tito Puente"
-      ]
-    },
-    {
-      "track": 4,
-      "name": "Incident at Neshabur",
-      "composers": [
-        "Alberto Gianquinto",
-        "Carlos Santana"
-      ]
-    },
-    {
-      "track": 5,
-      "name": "Se acabó",
-      "composers": [
-        "José Areas"
-      ]
-    },
-    {
-      "track": 6,
-      "name": "Mother's Daughter",
-      "composers": [
-        "Gregg Rolie"
-      ]
-    },
-    {
-      "track": 7,
-      "name": "Samba pa ti",
-      "composers": [
-        "Santana"
-      ]
-    },
-    {
-      "track": 8,
-      "name": "Hope You're Feeling Better",
-      "composers": [
-        "Rolie"
-      ]
-    },
-    {
-      "track": 9,
-      "name": "El Nicoya",
-      "composers": [
-        "Areas"
-      ]
-    }
-  ]
-}
-```
-</details>
-
-## Design 📐
-
-Unlike `ActiveModel::Serializer`, which builds a Hash that then gets encoded to
-JSON, this implementation can use `Oj::StringWriter` to write JSON directly,
-greatly reducing the overhead of allocating and garbage collecting the hashes.
-
-It also allocates a single instance per serializer class, which makes it easy
-to use, while keeping memory usage under control.
+Serialization builds a plain Ruby Hash via code generation, which is then encoded
+to JSON using Ruby's built-in `JSON.generate`. This approach keeps the
+implementation simple and portable — no C extensions are required.
 
 The internal design is simple and extensible, and because the library is written
 in Ruby, creating new serialization strategies requires very little code.
-Please open a [Discussion] if you need help 😃
+Please open a [Discussion] if you need help.
 
 ### Comparison with other libraries
 
@@ -647,16 +542,14 @@ evaluate serializers in the context of a `class` instead of an `instance` of a c
 The downside is that you can't use instance methods or local memoization, and any
 mixins must be applied to the class itself.
 
-[`panko-serializer`][panko] also uses `Oj::StringWriter`, but it has the big downside of having to own the entire render tree. Putting a serializer inside a Hash or an Active Model Serializer and serializing that to JSON doesn't work, making a gradual migration harder to achieve. Also, it's optimized for Active Record but I needed good Mongoid support.
+[`panko-serializer`][panko] uses C extensions for performance, but it has the big downside of having to own the entire render tree. Putting a serializer inside a Hash or an Active Model Serializer and serializing that to JSON doesn't work, making a gradual migration harder to achieve. Also, it's optimized for Active Record but doesn't support Mongoid.
 
-`Oj::Serializer` combines some of these ideas, by using instances, but reusing them to avoid object allocations. Serializing 10,000 items instantiates a single serializer. Unlike `panko-serializer`, it doesn't suffer from [double encoding problems](https://panko.dev/docs/response-bag) so it's easier to use.
-
-Follow [this discussion][raw_json] to find out more about [the `raw_json` extensions][raw_json] that made this high level of interoperability possible.
+`JsonSerializer` combines some of these ideas, by using instances, but reusing them to avoid object allocations. Serializing 10,000 items instantiates a single serializer. Unlike `panko-serializer`, it doesn't suffer from [double encoding problems](https://panko.dev/docs/response-bag) so it's easier to use.
 
 As a result, migrating from `active_model_serializers` is relatively
 straightforward because instance methods, inheritance, and mixins work as usual.
 
-### Benchmarks 📊
+### Benchmarks
 
 This library includes some [benchmarks] to compare performance with similar libraries.
 
@@ -669,12 +562,12 @@ Please refer to the [migration guide] for a full discussion of the compatibility
 modes available to make it easier to migrate from `active_model_serializers` and
 similar libraries.
 
-## Formatting 📏
+## Formatting
 
 Even though most of the examples above use a single-line style to be succint, I highly recommend writing one attribute per line, sorting them alphabetically (most editors can do it for you), and [always using a trailing comma][trailing_commas].
 
 ```ruby
-class AlbumSerializer < Oj::Serializer
+class AlbumSerializer < JsonSerializer
   attributes(
     :genres,
     :name,
@@ -685,14 +578,14 @@ end
 
 It will make things clearer, minimize the amount of git conflicts, and keep the history a lot cleaner and more meaningful when using `git blame`.
 
-## Special Thanks 🙏
+## Special Thanks
 
-This library wouldn't be possible without the wonderful and performant [`oj`](https://github.com/ohler55/oj) library. Thanks [Peter](https://github.com/ohler55)! 😃
+This library was originally built on top of the [`oj`](https://github.com/ohler55/oj) gem. Thanks [Peter](https://github.com/ohler55)!
 
 Also, thanks to the libraries that inspired this one:
 
 - [`active_model_serializers`][ams]: For the DSL
-- [`panko-serializer`][panko]: For validating that using `Oj::StringWriter` was indeed fast
+- [`panko-serializer`][panko]: For early performance validation
 
 ## License
 

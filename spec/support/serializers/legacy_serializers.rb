@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_model_serializers'
-require 'oj_serializers/compat'
+require 'json_serializers/compat'
 
 # https://github.com/rails-api/active_model_serializers/blob/0-8-stable/README.md#1-disable-root-globally-for-all-or-per-class
 ActiveSupport.on_load(:active_model_serializers) do

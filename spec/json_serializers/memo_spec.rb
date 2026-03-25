@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-RSpec.describe OjSerializers::Memo do
+RSpec.describe JsonSerializers::Memo do
   let(:memo) { described_class.new }
 
   it 'should memoize the values if they were not available' do

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'oj_serializers'
+require 'json_serializers'
 require 'active_model_serializers'
 require 'blueprinter'
 require 'panko_serializer'
@@ -44,7 +44,7 @@ module OptionSerializer
     end
   end
 
-  class Oj < Oj::Serializer
+  class Oj < JsonSerializer
     attr
     def label
       @object.attributes['name']
@@ -66,22 +66,6 @@ module OptionSerializer
     def value
       @object.attributes['_id']
     end
-  end
-
-  def self.write_models(models)
-    writer = ::Oj::StringWriter.new(mode: :wab)
-
-    writer.push_array
-
-    models.each do |model|
-      writer.push_object
-      writer.push_value(model.attributes['name'], 'label')
-      writer.push_value(model.attributes['_id'], 'value')
-      writer.pop
-    end
-    writer.pop
-
-    writer
   end
 
   def self.map_models(models)

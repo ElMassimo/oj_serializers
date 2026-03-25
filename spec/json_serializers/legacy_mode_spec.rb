@@ -23,7 +23,7 @@ class AmsAlbumSerializer < ActiveModel::Serializer
   end
 end
 
-class OjAlbumSerializer < Oj::Serializer
+class OjAlbumSerializer < JsonSerializer
   object_as :album
 
   ams_attributes(

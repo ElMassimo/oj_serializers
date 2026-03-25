@@ -6,7 +6,7 @@ require 'simplecov'
 SimpleCov.start { add_filter '/spec/' }
 
 require 'bundler/setup'
-require 'oj_serializers'
+require 'json_serializers'
 require 'bson'
 
 class BSON::ObjectId

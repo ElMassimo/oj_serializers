@@ -10,22 +10,16 @@ RSpec.describe 'OptionSerializer', :benchmark do
 
     it 'serializing models' do
       some = albums.take(1)
-      expect(Oj.dump(OptionSerializer::Oj.many(some))).to eq OptionSerializer::Blueprinter.render(some)
-      expect(Oj.dump(OptionSerializer::Oj.many(some))).to eq(Oj.dump(some.map { |album| OptionSerializer::AMS.new(album) }))
+      expect(JSON.generate(OptionSerializer::Oj.many(some))).to eq OptionSerializer::Blueprinter.render(some)
+      expect(JSON.generate(OptionSerializer::Oj.many(some))).to eq(JSON.generate(some.map { |album| OptionSerializer::AMS.new(album) }))
 
       Benchmark.ips do |x|
         x.config(time: 5, warmup: 2)
-        x.report('oj_serializers') do
-          Oj.dump OptionSerializer::Oj.many(albums)
-        end
-        x.report('oj_serializers (hash)') do
-          Oj.dump OptionSerializer::Oj.many_as_hash(albums)
+        x.report('json_serializers') do
+          JSON.generate(OptionSerializer::Oj.many(albums))
         end
         x.report('map_models') do
-          Oj.dump OptionSerializer.map_models(albums)
-        end
-        x.report('write_models') do
-          Oj.dump OptionSerializer.write_models(albums)
+          JSON.generate(OptionSerializer.map_models(albums))
         end
         x.report('alba') do
           OptionSerializer::Alba.new(albums).serialize
@@ -34,7 +28,7 @@ RSpec.describe 'OptionSerializer', :benchmark do
           Panko::ArraySerializer.new(albums, each_serializer: OptionSerializer::Panko).to_json
         end
         x.report('active_model_serializers') do
-          Oj.dump(albums.map { |album| OptionSerializer::AMS.new(album) })
+          JSON.generate(albums.map { |album| OptionSerializer::AMS.new(album) })
         end
         x.report('blueprinter') do
           OptionSerializer::Blueprinter.render(albums)

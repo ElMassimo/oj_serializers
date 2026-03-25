@@ -47,11 +47,8 @@ RSpec.describe 'GameSerializer', :benchmark do
 
       Benchmark.ips do |x|
         x.config(time: 5, warmup: 2)
-        x.report('oj_serializers as_hash') do
-          Oj.dump GameSerializer.one_as_hash(game)
-        end
-        x.report('oj_serializers') do
-          Oj.dump GameSerializer.one_as_json(game)
+        x.report('json_serializers') do
+          JSON.generate(GameSerializer.one(game))
         end
         x.report('panko') do
           GamePanko.new.serialize_to_json(game)

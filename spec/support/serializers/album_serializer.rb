@@ -2,7 +2,7 @@
 
 require_relative 'song_serializer'
 
-class AlbumSerializer < Oj::Serializer
+class AlbumSerializer < JsonSerializer
   transform_keys :camelize
 
   mongo_attributes(
