@@ -50,7 +50,7 @@ RSpec.describe OjSerializers::JsonStringEncoder, type: :serializer do
       expect_encoded_json(complex_array).to eq([{ complex_array: [hash, hash] }].to_json)
       expect_encoded_json(complex_array, root: :mixed).to eq({ mixed: [{ complex_array: [hash, hash] }] }.to_json)
 
-      expect(complex.as_json.to_json).to eq([{ complex: hash }].to_json)
+      expect(JSON.generate(complex.as_json)).to eq([{ complex: hash }].to_json)
       expect(OjSerializers::JsonValue.new(json_string).to_s).to eq json_string
     end
   end

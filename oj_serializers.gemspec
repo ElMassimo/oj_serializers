@@ -22,9 +22,5 @@ Gem::Specification.new do |spec|
   spec.files         = Dir.glob('{lib}/**/*.rb') + %w[README.md CHANGELOG.md]
   spec.require_paths = ['lib']
 
-  # oj is optional: when available, uses Oj::StringWriter for streaming JSON;
-  # otherwise falls back to a pure-Ruby JsonWriter + JSON.generate.
-  # spec.add_dependency 'oj', '>= 3.14.0'
-
   spec.metadata['rubygems_mfa_required'] = 'true'
 end

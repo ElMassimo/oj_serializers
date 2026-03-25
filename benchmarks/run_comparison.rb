@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
-# Orchestrator: runs all benchmark configurations and generates charts.
+# Orchestrator: runs benchmark configurations and generates charts.
 #
 # Usage:
 #   ruby benchmarks/run_comparison.rb
 #
-# Spawns separate Ruby processes for each configuration to ensure clean state
-# (oj cannot be unloaded once required).
+# Spawns separate Ruby processes for each configuration to ensure clean state.
 
 require 'json'
 
@@ -24,15 +23,11 @@ rescue StandardError
 end
 
 configurations = [
-  { backend: 'oj', yjit: false, label: 'oj (no YJIT)' },
   { backend: 'json', yjit: false, label: 'json (no YJIT)' },
 ]
 
 if yjit_available
-  configurations += [
-    { backend: 'oj', yjit: true, label: 'oj (YJIT)' },
-    { backend: 'json', yjit: true, label: 'json (YJIT)' },
-  ]
+  configurations << { backend: 'json', yjit: true, label: 'json (YJIT)' }
 else
   puts "Note: YJIT is not available in this Ruby build (#{RUBY_VERSION})"
   puts "      Skipping YJIT configurations."

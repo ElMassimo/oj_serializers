@@ -15,10 +15,6 @@ def check(**options)
   puts AlbumSerializer.send(:code_to_render_as_hash, AlbumSerializer.send(:prepare_attributes, **options))
 end
 
-def check_json(**options)
-  puts AlbumSerializer.send(:code_to_write_to_json, AlbumSerializer.send(:prepare_attributes, **options))
-end
-
 def axs
   AlbumSerializer.one Album.abraxas
 end

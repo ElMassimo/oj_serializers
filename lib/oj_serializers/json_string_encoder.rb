@@ -25,7 +25,7 @@ module OjSerializers::JsonStringEncoder
         object
       end
       payload = root ? { root => result } : result
-      defined?(Oj) ? Oj.dump(payload) : JSON.generate(payload)
+      JSON.generate(payload.as_json)
     end
 
     if OjSerializers::Serializer::DEV_MODE

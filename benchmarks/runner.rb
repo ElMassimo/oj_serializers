@@ -1,33 +1,18 @@
 # frozen_string_literal: true
 
-# Standalone benchmark runner for comparing oj vs JSON gem backends.
+# Standalone benchmark runner for JSON serialization performance.
 #
 # Usage:
-#   ruby benchmarks/runner.rb --backend=oj
-#   ruby benchmarks/runner.rb --backend=json
-#   ruby --yjit benchmarks/runner.rb --backend=oj
-#   ruby --yjit benchmarks/runner.rb --backend=json
+#   ruby benchmarks/runner.rb
+#   ruby --yjit benchmarks/runner.rb
 #
-# Results are written as JSON to benchmarks/results/<backend>_<yjit_status>.json
+# Results are written as JSON to benchmarks/results/json_<yjit_status>.json
 
 require 'bundler/setup'
 require 'json'
 
-BACKEND = ARGV.find { |a| a.start_with?('--backend=') }&.split('=', 2)&.last || 'oj'
+BACKEND = 'json'
 YJIT_ENABLED = defined?(RubyVM::YJIT) && RubyVM::YJIT.enabled?
-
-# Block oj from loading when testing the json backend.
-if BACKEND == 'json'
-  module OjBlocker
-    def require(name)
-      if name == 'oj'
-        raise LoadError, "oj is intentionally blocked for json-backend benchmark"
-      end
-      super
-    end
-  end
-  Object.prepend(OjBlocker)
-end
 
 ENV['RACK_ENV'] = 'production'
 ENV['BENCHMARK'] = 'true'
@@ -38,23 +23,11 @@ require 'active_support/core_ext/time/zones'
 
 Time.zone = 'UTC'
 
-# Load oj_serializers (will use JsonWriter fallback when oj is blocked)
+# Load oj_serializers
 $LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
 require 'oj_serializers'
 
-# Verify backend isolation
-if BACKEND == 'json'
-  if defined?(Oj::StringWriter)
-    abort "ERROR: Oj C extension is loaded but should not be for json backend!"
-  end
-  puts "Backend: json (Ruby's built-in JSON gem)"
-else
-  unless defined?(Oj::StringWriter)
-    abort "ERROR: Oj C extension is not loaded for oj backend!"
-  end
-  puts "Backend: oj (#{Oj::VERSION})"
-end
-
+puts "Backend: json (Ruby's built-in JSON gem)"
 puts "Ruby: #{RUBY_VERSION} (#{RUBY_PLATFORM})"
 puts "YJIT: #{YJIT_ENABLED}"
 puts "JSON gem: #{JSON::VERSION}" if defined?(JSON::VERSION)
@@ -68,8 +41,6 @@ Mongoid.configure do |config|
   )
 end
 
-# Load only the models and serializers needed for the album benchmark.
-# sql.rb and others reference Oj::Serializer which isn't available without oj.
 require File.expand_path('../spec/support/models/album', __dir__)
 require File.expand_path('../spec/support/serializers/album_serializer', __dir__)
 
@@ -81,39 +52,17 @@ albums_100 = 100.times.map { Album.abraxas }
 albums_1000 = 1000.times.map { Album.abraxas }
 
 # Warm up
-AlbumSerializer.one_as_json(album)
 AlbumSerializer.one_as_hash(album)
-AlbumSerializer.many_as_json(albums_100)
 AlbumSerializer.many_as_hash(albums_100)
 
 # Verify correctness
-json_output = AlbumSerializer.one_as_json(album).to_s
 hash_output = JSON.generate(AlbumSerializer.one_as_hash(album))
-parsed_json = JSON.parse(json_output)
 parsed_hash = JSON.parse(hash_output)
-
-unless parsed_json == parsed_hash
-  warn "WARNING: as_json and as_hash outputs differ!"
-  warn "as_json keys: #{parsed_json.keys}"
-  warn "as_hash keys: #{parsed_hash.keys}"
-end
 
 puts "Serializing album with #{album.songs.length} songs"
 puts "=" * 60
 
-results = []
-
-# Helper to capture benchmark-ips results
-def run_benchmark(label, &block)
-  report_data = nil
-  Benchmark.ips do |x|
-    x.config(time: 3, warmup: 1)
-    x.report(label, &block)
-    x.compare!
-  end
-end
-
-# Collect results using benchmark-ips with a custom reporter
+# Collect results using benchmark-ips
 class ResultCollector
   attr_reader :results
 
@@ -143,45 +92,15 @@ collector = ResultCollector.new
 # Define benchmark scenarios
 scenarios = {}
 
-if BACKEND == 'oj'
-  scenarios['one object (as_json + Oj.dump)'] = -> {
-    Oj.dump(AlbumSerializer.one_as_json(album))
-  }
-  scenarios['one object (as_hash + Oj.dump)'] = -> {
-    Oj.dump(AlbumSerializer.one_as_hash(album))
-  }
-  scenarios['100 albums (as_json + Oj.dump)'] = -> {
-    Oj.dump(AlbumSerializer.many_as_json(albums_100))
-  }
-  scenarios['100 albums (as_hash + Oj.dump)'] = -> {
-    Oj.dump(AlbumSerializer.many_as_hash(albums_100))
-  }
-  scenarios['1000 albums (as_json + Oj.dump)'] = -> {
-    Oj.dump(AlbumSerializer.many_as_json(albums_1000))
-  }
-  scenarios['1000 albums (as_hash + Oj.dump)'] = -> {
-    Oj.dump(AlbumSerializer.many_as_hash(albums_1000))
-  }
-else
-  scenarios['one object (as_json + JSON.generate)'] = -> {
-    AlbumSerializer.one_as_json(album).to_s
-  }
-  scenarios['one object (as_hash + JSON.generate)'] = -> {
-    JSON.generate(AlbumSerializer.one_as_hash(album))
-  }
-  scenarios['100 albums (as_json + JSON.generate)'] = -> {
-    AlbumSerializer.many_as_json(albums_100).to_s
-  }
-  scenarios['100 albums (as_hash + JSON.generate)'] = -> {
-    JSON.generate(AlbumSerializer.many_as_hash(albums_100))
-  }
-  scenarios['1000 albums (as_json + JSON.generate)'] = -> {
-    AlbumSerializer.many_as_json(albums_1000).to_s
-  }
-  scenarios['1000 albums (as_hash + JSON.generate)'] = -> {
-    JSON.generate(AlbumSerializer.many_as_hash(albums_1000))
-  }
-end
+scenarios['one object (as_hash + JSON.generate)'] = -> {
+  JSON.generate(AlbumSerializer.one_as_hash(album))
+}
+scenarios['100 albums (as_hash + JSON.generate)'] = -> {
+  JSON.generate(AlbumSerializer.many_as_hash(albums_100))
+}
+scenarios['1000 albums (as_hash + JSON.generate)'] = -> {
+  JSON.generate(AlbumSerializer.many_as_hash(albums_1000))
+}
 
 collector.run(scenarios)
 
@@ -207,7 +126,7 @@ result_data = {
     ruby_platform: RUBY_PLATFORM,
     yjit: YJIT_ENABLED,
     backend: BACKEND,
-    oj_version: defined?(Oj::VERSION) ? Oj::VERSION : nil,
+    oj_version: nil,
     json_version: defined?(JSON::VERSION) ? JSON::VERSION : nil,
     timestamp: Time.now.iso8601,
   },

@@ -10,11 +10,6 @@ require 'oj_serializers/json_value'
 # Public: Implementation of an "ActiveModelSerializer"-like DSL, but with a
 # design that allows replacing the internal object, which greatly reduces object
 # allocation.
-#
-# Unlike ActiveModelSerializer, which builds a Hash which then gets encoded to
-# JSON, this implementation allows to use Oj::StringWriter to write directly to
-# JSON, greatly reducing the overhead of allocating and garbage collecting the
-# hashes.
 class OjSerializers::Serializer
   # Public: Used to validate incorrect memoization during development. Users of
   # this library might add additional options as needed.
@@ -35,8 +30,14 @@ class OjSerializers::Serializer
     serializer
   ].to_set
 
-  CACHE = (defined?(Rails) && Rails.cache) ||
-          (defined?(ActiveSupport::Cache::MemoryStore) ? ActiveSupport::Cache::MemoryStore.new : OjSerializers::Memo.new)
+  CACHE = begin
+    (defined?(Rails) && Rails.cache) || begin
+      require 'active_support/cache'
+      ActiveSupport::Cache::MemoryStore.new
+    end
+  rescue LoadError
+    OjSerializers::Memo.new
+  end
 
   # Internal: The environment the app is currently running on.
   environment = ENV['RACK_ENV'] || ENV['RAILS_ENV'] || 'production'
@@ -62,33 +63,6 @@ class OjSerializers::Serializer
     end
   end
 
-  # Internal: Used internally to write a single object to JSON.
-  #
-  # writer - writer used to serialize results
-  # item - item to serialize results for
-  # options - list of external options to pass to the serializer (available as `options`)
-  #
-  # NOTE: Binds this instance to the specified object and options and writes
-  # to json using the provided writer.
-  def write_one(writer, item, options = nil)
-    writer.push_object
-    write_to_json(writer, item, options)
-    writer.pop
-  end
-
-  # Internal: Used internally to write an array of objects to JSON.
-  #
-  # writer - writer used to serialize results
-  # items - items to serialize results for
-  # options - list of external options to pass to the serializer (available as `options`)
-  def write_many(writer, items, options = nil)
-    writer.push_array
-    items.each do |item|
-      write_one(writer, item, options)
-    end
-    writer.pop
-  end
-
 protected
 
   # Internal: An internal cache that can be used for temporary memoization.
@@ -97,15 +71,6 @@ protected
   end
 
   class << self
-    # Public: Allows the user to specify `default_format :json`, as a simple
-    # way to ensure that `.one` and `.many` work as in Version 1.
-    #
-    # This setting is inherited from parent classes.
-    def default_format(format)
-      define_singleton_method(:_default_format) { format }
-      define_serialization_shortcuts
-    end
-
     # Public: Allows to sort fields by name instead of by definition order, or
     # pass a Proc to apply a custom order.
     #
@@ -146,18 +111,6 @@ protected
     # NOTE: `one` serves as a replacement for `new` in these serializers.
     private :new
 
-    # Internal: Delegates to the instance methods, the advantage is that we can
-    # reuse the same serializer instance to serialize different objects.
-    delegate :write_one, :write_many, :write_to_json, to: :instance
-
-    # Internal: Keep a reference to the default `write_one` method so that we
-    # can use it inside cached overrides and benchmark tests.
-    alias_method :non_cached_write_one, :write_one
-
-    # Internal: Keep a reference to the default `write_many` method so that we
-    # can use it inside cached overrides and benchmark tests.
-    alias_method :non_cached_write_many, :write_many
-
     # Helper: Serializes one or more items.
     def render(item, options = nil)
       many?(item) ? many(item, options) : one(item, options)
@@ -171,30 +124,6 @@ protected
     # Helper: Serializes the item unless it's nil.
     def one_if(item, options = nil)
       one(item, options) if item
-    end
-
-    # Public: Serializes the configured attributes for the specified object.
-    #
-    # item - the item to serialize
-    # options - list of external options to pass to the sub class (available in `item.options`)
-    #
-    # Returns an Oj::StringWriter instance, which is encoded as raw json.
-    def one_as_json(item, options = nil)
-      writer = new_json_writer
-      write_one(writer, item, options)
-      writer
-    end
-
-    # Public: Serializes an array of items using this serializer.
-    #
-    # items - Must respond to `each`.
-    # options - list of external options to pass to the sub class (available in `item.options`)
-    #
-    # Returns an Oj::StringWriter instance, which is encoded as raw json.
-    def many_as_json(items, options = nil)
-      writer = new_json_writer
-      write_many(writer, items, options)
-      writer
     end
 
     # Public: Renders the configured attributes for the specified object,
@@ -246,7 +175,6 @@ protected
     #
     # NOTE: Benchmark it, sometimes caching is actually SLOWER.
     def cached(cache_key_proc = :cache_key.to_proc)
-      cache_options = { namespace: "#{name}#write_to_json", version: OjSerializers::VERSION }.freeze
       cache_hash_options = { namespace: "#{name}#render_as_hash", version: OjSerializers::VERSION }.freeze
 
       # Internal: Redefine `one_as_hash` to use the cache for the serialized hash.
@@ -278,62 +206,13 @@ protected
         end.values
       end
 
-      # Internal: Redefine `write_one` to use the cache for the serialized JSON.
-      define_singleton_method(:write_one) do |external_writer, item, options = nil|
-        cached_item = CACHE.fetch(item_cache_key(item, cache_key_proc), cache_options) do
-          writer = new_json_writer
-          non_cached_write_one(writer, item, options)
-          writer.to_json
-        end
-        external_writer.push_json("#{cached_item}\n") # Oj.dump expects a new line terminator.
-      end
-
-      # Internal: Redefine `write_many` to use fetch_multi from cache.
-      define_singleton_method(:write_many) do |external_writer, items, options = nil|
-        # We define a one-off method for the class to receive the entire object
-        # inside the `fetch_multi` block. Otherwise we would only get the cache
-        # key, and we would need to build a Hash to retrieve the object.
-        #
-        # NOTE: The assignment is important, as queries would return different
-        # objects when expanding with the splat in fetch_multi.
-        items = items.entries.each do |item|
-          item_key = item_cache_key(item, cache_key_proc)
-          item.define_singleton_method(:cache_key) { item_key }
-        end
-
-        # Fetch all items at once by leveraging `read_multi`.
-        #
-        # NOTE: Memcached does not support `write_multi`, if we switch the cache
-        # store to use Redis performance would improve a lot for this case.
-        cached_items = CACHE.fetch_multi(*items, cache_options) do |item|
-          writer = new_json_writer
-          non_cached_write_one(writer, item, options)
-          writer.to_json
-        end.values
-        external_writer.push_json("#{OjSerializers::JsonValue.array(cached_items)}\n") # Oj.dump expects a new line terminator.
-      end
-
       define_serialization_shortcuts
     end
     alias_method :cached_with_key, :cached
 
-    def define_serialization_shortcuts(format = _default_format)
-      case format
-      when :json, :hash
-        singleton_class.alias_method :one, :"one_as_#{format}"
-        singleton_class.alias_method :many, :"many_as_#{format}"
-      else
-        raise ArgumentError, "Unknown serialization format: #{format.inspect}"
-      end
-    end
-
-    # Internal: The writer to use to write to json
-    def new_json_writer
-      if defined?(Oj::StringWriter)
-        Oj::StringWriter.new(mode: :rails)
-      else
-        OjSerializers::JsonWriter.new
-      end
+    def define_serialization_shortcuts
+      singleton_class.alias_method :one, :one_as_hash
+      singleton_class.alias_method :many, :many_as_hash
     end
 
     # Public: Identifiers are always serialized first.
@@ -481,32 +360,6 @@ protected
     #
     # As a result, the performance is the same as writing the most efficient
     # code by hand.
-    def code_to_write_to_json(attributes)
-      <<~WRITE_TO_JSON
-        # Public: Writes this serializer content to a provided Oj::StringWriter.
-        def write_to_json(writer, item, options = nil)
-          @object = item
-          @options = options
-          @memo.clear if defined?(@memo)
-          #{ attributes.map { |key, options|
-            code_to_write_conditionally(options) {
-              if options[:association]
-                code_to_write_association(key, options)
-              else
-                code_to_write_attribute(key, options)
-              end
-            }
-          }.join("\n  ") }#{code_to_rescue_no_method if DEV_MODE}
-        end
-      WRITE_TO_JSON
-    end
-
-    # Internal: We generate code for the serializer to avoid the overhead of
-    # using variables for method names, having to iterate the list of attributes
-    # and associations, and the overhead of using `send` with dynamic methods.
-    #
-    # As a result, the performance is the same as writing the most efficient
-    # code by hand.
     def code_to_render_as_hash(attributes)
       <<~RENDER_AS_HASH
         # Public: Writes this serializer content to a Hash.
@@ -559,72 +412,6 @@ protected
         end
       end
       include_method_name if method_defined?(include_method_name)
-    end
-
-    # Internal: Returns the code to render an attribute or association
-    # conditionally.
-    #
-    # NOTE: Detects any include methods defined in the serializer, or defines
-    # one by using the lambda passed in the `if` option, if any.
-    def code_to_write_conditionally(options)
-      if (include_method_name = check_conditional_method(options))
-        "if #{include_method_name};#{yield};end\n"
-      else
-        yield
-      end
-    end
-
-    # Internal: Returns the code for the association method.
-    def code_to_write_attribute(key, options)
-      value_from = options.fetch(:value_from)
-
-      value = case (strategy = options.fetch(:attribute))
-      when :serializer
-        # Obtains the value by calling a method in the serializer.
-        value_from
-      when :method
-        # Obtains the value by calling a method in the object, and writes it.
-        "@object.#{value_from}"
-      when :hash
-        # Writes a Hash value to JSON, works with String or Symbol keys.
-        "@object[#{value_from.inspect}]"
-      when :mongoid
-        # Writes an Mongoid attribute to JSON, this is the fastest strategy.
-        "@object.attributes['#{value_from}']"
-      else
-        raise ArgumentError, "Unknown attribute strategy: #{strategy.inspect}"
-      end
-
-      "writer.push_value(#{value}, #{key.inspect})"
-    end
-
-    # Internal: Returns the code for the association method.
-    def code_to_write_association(key, options)
-      # Use a serializer method if defined, else call the association in the object.
-      value_from = options.fetch(:value_from)
-      value = method_defined?(value_from) ? value_from : "@object.#{value_from}"
-      serializer_class = options.fetch(:serializer)
-
-      case type = options.fetch(:association)
-      when :one
-        <<~WRITE_ONE
-          if __value = #{value}
-            writer.push_key('#{key}')
-            #{serializer_class}.write_one(writer, __value, options)
-          end
-        WRITE_ONE
-      when :many
-        <<~WRITE_MANY
-          writer.push_key('#{key}')
-          #{serializer_class}.write_many(writer, #{value}, options)
-        WRITE_MANY
-      when :flat
-        <<~WRITE_FLAT
-          #{serializer_class}.write_to_json(writer, #{value}, options)
-        WRITE_FLAT
-      else
-        raise ArgumentError, "Unknown association type: #{type.inspect}"
-      end
     end
 
     # Internal: Returns the code to render an attribute or association
@@ -699,11 +486,10 @@ protected
       end
     end
 
-    # Internal: Generates write_to_json and render_as_hash methods optimized for
+    # Internal: Generates the render_as_hash method optimized for
     # the specified configuration.
     def prepare_serializer
       attributes = prepare_attributes
-      class_eval(code_to_write_to_json(attributes))
       class_eval(code_to_render_as_hash(attributes))
     end
 
@@ -729,7 +515,7 @@ protected
     end
   end
 
-  default_format :hash
+  define_serialization_shortcuts
 end
 
 unless defined?(Oj::Serializer)

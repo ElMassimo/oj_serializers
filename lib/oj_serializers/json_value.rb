@@ -36,10 +36,6 @@ class OjSerializers::JsonValue
   # When oj is not loaded, returns a JSON::Fragment so JSON.generate embeds
   # the pre-encoded string directly.
   def as_json(_options = nil)
-    if !defined?(Oj) && defined?(JSON::Fragment)
-      JSON::Fragment.new(@json)
-    else
-      self
-    end
+    defined?(JSON::Fragment) ? JSON::Fragment.new(@json) : self
   end
 end
