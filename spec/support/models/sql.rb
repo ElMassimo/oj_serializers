@@ -56,18 +56,18 @@ class Player < ActiveRecord::Base
   end
 end
 
-class PlayerSerializer < Oj::Serializer
+class PlayerSerializer < JsonSerializer
   identifier
   attributes :first_name, :last_name, :full_name
 end
 
 # NOTE: This example is quite contrived. Finding good test cases is as hard as
 # finding good names.
-class ScoresSerializer < Oj::Serializer
+class ScoresSerializer < JsonSerializer
   attributes :high_score, :score
 end
 
-class GameSerializer < Oj::Serializer
+class GameSerializer < JsonSerializer
   identifier
   attributes :name
 

@@ -127,7 +127,7 @@ end
 
 # Build markdown summary
 md_lines = []
-md_lines << "# oj_serializers: Oj vs Ruby JSON Benchmark Results"
+md_lines << "# json_serializers: Oj vs Ruby JSON Benchmark Results"
 md_lines << ""
 md_lines << "| Scenario | " + configs.map { |c|
   "#{c[:backend]}#{c[:yjit] ? ' (YJIT)' : ''}"
@@ -167,7 +167,7 @@ html = <<~HTML
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>oj_serializers: Oj vs Ruby JSON Benchmark</title>
+  <title>json_serializers: Oj vs Ruby JSON Benchmark</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -227,8 +227,8 @@ html = <<~HTML
   </style>
 </head>
 <body>
-  <h1>oj_serializers: Oj vs Ruby JSON Benchmark</h1>
-  <p class="subtitle">Comparing Oj C extension with Ruby's built-in JSON gem for oj_serializers</p>
+  <h1>json_serializers: Oj vs Ruby JSON Benchmark</h1>
+  <p class="subtitle">Comparing Oj C extension with Ruby's built-in JSON gem for json_serializers</p>
 
   <div class="metadata">
     <span><strong>Ruby:</strong> #{metadata[:ruby_version]}</span>

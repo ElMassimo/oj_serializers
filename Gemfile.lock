@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    oj_serializers (3.0.0)
+    json_serializers (3.0.0)
 
 GEM
   remote: https://rubygems.org/
@@ -295,9 +295,9 @@ DEPENDENCIES
   benchmark-memory
   blueprinter (~> 0.8)
   json
+  json_serializers!
   memory_profiler
   mongoid
-  oj_serializers!
   panko_serializer
   pry-byebug (~> 3.9)
   rails

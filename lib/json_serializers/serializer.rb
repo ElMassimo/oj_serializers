@@ -4,13 +4,13 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/object/try'
 require 'active_support/core_ext/string/inflections'
 
-require 'oj_serializers/memo'
-require 'oj_serializers/json_value'
+require 'json_serializers/memo'
+require 'json_serializers/json_value'
 
 # Public: Implementation of an "ActiveModelSerializer"-like DSL, but with a
 # design that allows replacing the internal object, which greatly reduces object
 # allocation.
-class OjSerializers::Serializer
+class JsonSerializers::Serializer
   # Public: Used to validate incorrect memoization during development. Users of
   # this library might add additional options as needed.
   ALLOWED_INSTANCE_VARIABLES = %w[
@@ -36,7 +36,7 @@ class OjSerializers::Serializer
       ActiveSupport::Cache::MemoryStore.new
     end
   rescue LoadError
-    OjSerializers::Memo.new
+    JsonSerializers::Memo.new
   end
 
   # Internal: The environment the app is currently running on.
@@ -67,7 +67,7 @@ protected
 
   # Internal: An internal cache that can be used for temporary memoization.
   def memo
-    @memo ||= OjSerializers::Memo.new
+    @memo ||= JsonSerializers::Memo.new
   end
 
   class << self
@@ -175,7 +175,7 @@ protected
     #
     # NOTE: Benchmark it, sometimes caching is actually SLOWER.
     def cached(cache_key_proc = :cache_key.to_proc)
-      cache_hash_options = { namespace: "#{name}#render_as_hash", version: OjSerializers::VERSION }.freeze
+      cache_hash_options = { namespace: "#{name}#render_as_hash", version: JsonSerializers::VERSION }.freeze
 
       # Internal: Redefine `one_as_hash` to use the cache for the serialized hash.
       define_singleton_method(:one_as_hash) do |item, options = nil|
@@ -518,9 +518,12 @@ protected
   define_serialization_shortcuts
 end
 
+# Public: Top-level alias for convenience.
+JsonSerializer = JsonSerializers::Serializer unless defined?(JsonSerializer)
+
+# Backwards Compatibility: Keep Oj::Serializer alias so existing serializers
+# inheriting from Oj::Serializer continue to work.
 unless defined?(Oj::Serializer)
-  # When oj is not loaded, create the Oj module as a namespace so that
-  # existing serializers inheriting from Oj::Serializer continue to work.
   Object.const_set(:Oj, Module.new) unless defined?(Oj)
-  Oj::Serializer = OjSerializers::Serializer
+  Oj::Serializer = JsonSerializers::Serializer
 end

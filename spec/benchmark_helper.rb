@@ -11,7 +11,7 @@ require 'memory_profiler'
 require 'rails'
 require 'active_support/json'
 require 'active_support/core_ext/time/zones'
-require 'oj_serializers/compat'
+require 'json_serializers/compat'
 
 Time.zone = 'UTC'
 

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-require 'oj_serializers/json_string_encoder'
+require 'json_serializers/json_string_encoder'
 
 class CustomValue
   def as_json(*)
@@ -10,13 +10,13 @@ class CustomValue
   end
 end
 
-RSpec.describe OjSerializers::JsonStringEncoder, type: :serializer do
+RSpec.describe JsonSerializers::JsonStringEncoder, type: :serializer do
   def expect_encoded_json(object, options = {})
-    expect(OjSerializers::JsonStringEncoder.encode_to_json(object, **options).tr("\n", ''))
+    expect(JsonSerializers::JsonStringEncoder.encode_to_json(object, **options).tr("\n", ''))
   end
 
   def expect_incorrect_usage(object, options = {})
-    expect { OjSerializers::JsonStringEncoder.encode_to_json(object, **options) }
+    expect { JsonSerializers::JsonStringEncoder.encode_to_json(object, **options) }
   end
 
   let(:hash) { { a: 1, b: '2', c: nil, d: false, e: BSON::ObjectId.new, f: CustomValue.new } }
@@ -41,17 +41,17 @@ RSpec.describe OjSerializers::JsonStringEncoder, type: :serializer do
 
     it 'should not double encode JsonValue' do
       json_string = hash.to_json
-      complex = [{ complex: OjSerializers::JsonValue.new(json_string) }]
+      complex = [{ complex: JsonSerializers::JsonValue.new(json_string) }]
       expect_encoded_json(complex).to eq([{ complex: hash }].to_json)
       expect_encoded_json(complex, root: :mixed).to eq({ mixed: [{ complex: hash }] }.to_json)
 
       json_strings = [json_string, json_string]
-      complex_array = [{ complex_array: OjSerializers::JsonValue.array(json_strings) }]
+      complex_array = [{ complex_array: JsonSerializers::JsonValue.array(json_strings) }]
       expect_encoded_json(complex_array).to eq([{ complex_array: [hash, hash] }].to_json)
       expect_encoded_json(complex_array, root: :mixed).to eq({ mixed: [{ complex_array: [hash, hash] }] }.to_json)
 
       expect(JSON.generate(complex.as_json)).to eq([{ complex: hash }].to_json)
-      expect(OjSerializers::JsonValue.new(json_string).to_s).to eq json_string
+      expect(JsonSerializers::JsonValue.new(json_string).to_s).to eq json_string
     end
   end
 

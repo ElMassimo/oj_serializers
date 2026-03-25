@@ -21,7 +21,7 @@ RSpec.describe 'Caching', type: :serializer do
 
   before do
     # NOTE: Uncomment to debug test failures.
-    # Oj::Serializer::CACHE.logger = ActiveSupport::Logger.new(STDOUT)
+    # JsonSerializers::Serializer::CACHE.logger = ActiveSupport::Logger.new(STDOUT)
   end
 
   it 'should reuse the cache effectively' do

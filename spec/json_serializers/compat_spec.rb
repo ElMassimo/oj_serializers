@@ -5,7 +5,7 @@ require 'spec_helper'
 require 'support/models/album'
 require 'support/serializers/active_model_serializer'
 
-class CompatSerializer < Oj::Serializer
+class CompatSerializer < JsonSerializer
   has_one :item, key: :album, serializer: ActiveModelSerializer
   has_many :items, serializer: ActiveModelSerializer, unless: -> { options[:skip_collection] }
 end

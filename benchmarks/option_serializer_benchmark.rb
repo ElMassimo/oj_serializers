@@ -15,7 +15,7 @@ RSpec.describe 'OptionSerializer', :benchmark do
 
       Benchmark.ips do |x|
         x.config(time: 5, warmup: 2)
-        x.report('oj_serializers') do
+        x.report('json_serializers') do
           JSON.generate(OptionSerializer::Oj.many(albums))
         end
         x.report('map_models') do

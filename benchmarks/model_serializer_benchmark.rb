@@ -11,7 +11,7 @@ RSpec.describe 'ModelSerializer', :benchmark do
     it 'serializing models' do
       Benchmark.ips do |x|
         x.config(time: 5, warmup: 2)
-        x.report('oj_serializers') do
+        x.report('json_serializers') do
           JSON.generate(ModelSerializer.many(albums))
         end
         x.report('panko') do

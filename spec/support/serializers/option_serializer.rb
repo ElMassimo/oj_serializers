@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'oj_serializers'
+require 'json_serializers'
 require 'active_model_serializers'
 require 'blueprinter'
 require 'panko_serializer'
@@ -44,7 +44,7 @@ module OptionSerializer
     end
   end
 
-  class Oj < Oj::Serializer
+  class Oj < JsonSerializer
     attr
     def label
       @object.attributes['name']

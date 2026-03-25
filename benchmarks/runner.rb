@@ -23,9 +23,9 @@ require 'active_support/core_ext/time/zones'
 
 Time.zone = 'UTC'
 
-# Load oj_serializers
+# Load json_serializers
 $LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
-require 'oj_serializers'
+require 'json_serializers'
 
 puts "Backend: json (Ruby's built-in JSON gem)"
 puts "Ruby: #{RUBY_VERSION} (#{RUBY_PLATFORM})"
@@ -37,7 +37,7 @@ puts
 require 'mongoid'
 Mongoid.configure do |config|
   config.clients.merge!(
-    default: { hosts: ['localhost:27017'], database: 'oj_serializers_bench', options: { server_selection_timeout: 1 } },
+    default: { hosts: ['localhost:27017'], database: 'json_serializers_bench', options: { server_selection_timeout: 1 } },
   )
 end
 

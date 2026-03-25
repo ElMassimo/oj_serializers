@@ -42,7 +42,7 @@ class ActiveModel::Serializer
   end
 end
 
-require 'oj_serializers'
-require 'oj_serializers/sugar'
+require 'json_serializers'
+require 'json_serializers/sugar'
 
-Oj::Serializer.singleton_class.prepend(ActiveModel::Serializer::OjOptionsCompat)
+JsonSerializer.singleton_class.prepend(ActiveModel::Serializer::OjOptionsCompat)

@@ -17,7 +17,7 @@ RSpec.describe 'AlbumSerializer', :benchmark do
       album = Album.abraxas
       Benchmark.ips do |x|
         x.config(time: 5, warmup: 2)
-        x.report('oj_serializers') do
+        x.report('json_serializers') do
           JSON.generate(AlbumSerializer.one(album))
         end
         x.report('panko') do
@@ -40,7 +40,7 @@ RSpec.describe 'AlbumSerializer', :benchmark do
       albums = 100.times.map { Album.abraxas }
       Benchmark.ips do |x|
         x.config(time: 5, warmup: 2)
-        x.report('oj_serializers') do
+        x.report('json_serializers') do
           JSON.generate(AlbumSerializer.many(albums))
         end
         x.report('panko') do
@@ -63,7 +63,7 @@ RSpec.describe 'AlbumSerializer', :benchmark do
       albums = 1000.times.map { Album.abraxas }
       Benchmark.ips do |x|
         x.config(time: 5, warmup: 2)
-        x.report('oj_serializers') do
+        x.report('json_serializers') do
           JSON.generate(AlbumSerializer.many(albums))
         end
         x.report('panko') do

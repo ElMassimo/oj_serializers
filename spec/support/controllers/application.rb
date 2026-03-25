@@ -8,7 +8,7 @@ require 'support/models/sql'
 class MusicApplication < Rails::Application
   def quick_setup
     ams_init = initializers.find { |i| i.name == 'active_model_serializers.action_controller' }
-    oj_init = initializers.find { |i| i.name == 'oj_serializers.action_controller' }
+    oj_init = initializers.find { |i| i.name == 'json_serializers.action_controller' }
 
     if ams_init && oj_init
       ams_init.run
@@ -18,7 +18,7 @@ class MusicApplication < Rails::Application
       # include the modules needed for the controller tests.
       require 'action_controller/serialization'
       ApplicationController.include(::ActionController::Serialization)
-      ApplicationController.include(OjSerializers::ControllerSerialization)
+      ApplicationController.include(JsonSerializers::ControllerSerialization)
     end
   end
 end
@@ -26,4 +26,4 @@ end
 class ApplicationController < ActionController::Base
 end
 
-require 'oj_serializers/sugar'
+require 'json_serializers/sugar'

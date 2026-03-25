@@ -4,7 +4,7 @@ require 'spec_helper'
 require 'support/models/album'
 require 'support/serializers/invalid_album_serializer'
 
-class StatefulSerializer < Oj::Serializer
+class StatefulSerializer < JsonSerializer
   hash_attributes 'genre'
 
   attribute
@@ -13,7 +13,7 @@ class StatefulSerializer < Oj::Serializer
   end
 end
 
-class MissingAttributeSerializer < Oj::Serializer
+class MissingAttributeSerializer < JsonSerializer
   mongo_attributes(:name2)
 end
 
@@ -21,7 +21,7 @@ RSpec.describe 'Development Mode', type: :serializer do
   let(:album) { Album.abraxas }
 
   before do
-    expect(Oj::Serializer::DEV_MODE).to eq true
+    expect(JsonSerializers::Serializer::DEV_MODE).to eq true
   end
 
   it 'should fail early when memoization is used incorrectly' do

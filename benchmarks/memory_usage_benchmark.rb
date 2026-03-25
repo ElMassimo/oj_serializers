@@ -23,7 +23,7 @@ RSpec.describe 'Memory Usage', :benchmark do
   it 'should require less memory when serializing an object' do
     album
     report = Benchmark.memory do |x|
-      x.report('oj_serializers') { JSON.generate(AlbumSerializer.one(album)) }
+      x.report('json_serializers') { JSON.generate(AlbumSerializer.one(album)) }
       x.report('ams') { JSON.generate(LegacyAlbumSerializer.new(album)) }
       x.report('alba') { AlbumAlba.new(album).serialize }
       x.report('panko') { AlbumPanko.new.serialize_to_json(album) }
@@ -35,7 +35,7 @@ RSpec.describe 'Memory Usage', :benchmark do
   it 'should require less memory when serializing a collection' do
     albums
     report = Benchmark.memory do |x|
-      x.report('oj_serializers') { JSON.generate(AlbumSerializer.many(albums)) }
+      x.report('json_serializers') { JSON.generate(AlbumSerializer.many(albums)) }
       x.report('ams') { JSON.generate(albums.map { |album| LegacyAlbumSerializer.new(album) }) }
       x.report('alba') { AlbumAlba.new(albums).serialize }
       x.report('panko') { Panko::ArraySerializer.new(albums, each_serializer: AlbumPanko).to_json }
