@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ModelSerializer < Oj::Serializer
+class ModelSerializer < JsonSerializer
   attributes(
     :id,
     :name,

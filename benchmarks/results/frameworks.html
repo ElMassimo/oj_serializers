@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>json_serializers: Framework Comparison Benchmark</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #f8f9fa;
+      color: #333;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .subtitle { color: #666; margin-bottom: 2rem; font-size: 0.95rem; }
+    .chart-container {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .chart-container h2 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: #444;
+    }
+    canvas { max-height: 400px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 0.6rem 1rem;
+      text-align: right;
+      border-bottom: 1px solid #eee;
+    }
+    th { background: #f1f3f5; font-weight: 600; text-align: left; }
+    td:first-child { text-align: left; font-weight: 500; }
+    tr:hover { background: #f8f9fa; }
+    .metadata {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .metadata span { margin-right: 2rem; }
+    .winner { background: #e8f5e9 !important; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>json_serializers: Framework Comparison</h1>
+  <p class="subtitle">Comparing json_serializers against other Ruby serialization libraries</p>
+
+  <div class="metadata">
+    <span><strong>Ruby:</strong> 3.3.6</span>
+    <span><strong>Platform:</strong> x86_64-linux</span>
+    <span><strong>YJIT:</strong> false</span>
+    <span><strong>JSON gem:</strong> 2.19.2</span>
+    <span><strong>Date:</strong> 2026-03-25</span>
+  </div>
+
+  <div class="chart-container">
+    <h2>Overview: Iterations per Second (higher is better)</h2>
+    <canvas id="overviewChart"></canvas>
+  </div>
+
+  <div class="chart-container">
+  <h2>AlbumSerializer: single model: Iterations per Second</h2>
+  <canvas id="chart0"></canvas>
+</div>
+<div class="chart-container">
+  <h2>AlbumSerializer: 100 albums: Iterations per Second</h2>
+  <canvas id="chart1"></canvas>
+</div>
+<div class="chart-container">
+  <h2>AlbumSerializer: 1000 albums: Iterations per Second</h2>
+  <canvas id="chart2"></canvas>
+</div>
+<div class="chart-container">
+  <h2>GameSerializer: single model: Iterations per Second</h2>
+  <canvas id="chart3"></canvas>
+</div>
+<div class="chart-container">
+  <h2>ModelSerializer: 100 albums: Iterations per Second</h2>
+  <canvas id="chart4"></canvas>
+</div>
+<div class="chart-container">
+  <h2>OptionSerializer: 100 albums: Iterations per Second</h2>
+  <canvas id="chart5"></canvas>
+</div>
+
+
+  <div class="chart-container">
+    <h2>Summary Table</h2>
+    <h3 style="margin: 1rem 0 0.5rem; color: #555; font-size: 1rem;">AlbumSerializer: single model</h3>
+<table>
+  <thead>
+    <tr><th>Framework</th><th>Iterations/s</th><th>vs fastest</th></tr>
+  </thead>
+  <tbody>
+    <tr class="winner"><td>json_serializers</td><td>9.7k i/s</td><td>fastest</td></tr>
+          <tr><td>panko</td><td>5.7k i/s</td><td>1.7x slower</td></tr>
+          <tr><td>alba</td><td>3.6k i/s</td><td>2.7x slower</td></tr>
+          <tr><td>blueprinter</td><td>3.5k i/s</td><td>2.8x slower</td></tr>
+          <tr><td>active_model_serializers</td><td>3.3k i/s</td><td>2.9x slower</td></tr>
+  </tbody>
+</table>
+
+  <h3 style="margin: 1rem 0 0.5rem; color: #555; font-size: 1rem;">AlbumSerializer: 100 albums</h3>
+<table>
+  <thead>
+    <tr><th>Framework</th><th>Iterations/s</th><th>vs fastest</th></tr>
+  </thead>
+  <tbody>
+    <tr class="winner"><td>json_serializers</td><td>101.9 i/s</td><td>fastest</td></tr>
+          <tr><td>panko</td><td>67.1 i/s</td><td>1.5x slower</td></tr>
+          <tr><td>blueprinter</td><td>36.5 i/s</td><td>2.8x slower</td></tr>
+          <tr><td>alba</td><td>34.2 i/s</td><td>3.0x slower</td></tr>
+          <tr><td>active_model_serializers</td><td>33.5 i/s</td><td>3.0x slower</td></tr>
+  </tbody>
+</table>
+
+  <h3 style="margin: 1rem 0 0.5rem; color: #555; font-size: 1rem;">AlbumSerializer: 1000 albums</h3>
+<table>
+  <thead>
+    <tr><th>Framework</th><th>Iterations/s</th><th>vs fastest</th></tr>
+  </thead>
+  <tbody>
+    <tr class="winner"><td>json_serializers</td><td>9.7 i/s</td><td>fastest</td></tr>
+          <tr><td>panko</td><td>6.4 i/s</td><td>1.5x slower</td></tr>
+          <tr><td>blueprinter</td><td>3.5 i/s</td><td>2.8x slower</td></tr>
+          <tr><td>alba</td><td>3.5 i/s</td><td>2.8x slower</td></tr>
+          <tr><td>active_model_serializers</td><td>3.3 i/s</td><td>2.9x slower</td></tr>
+  </tbody>
+</table>
+
+  <h3 style="margin: 1rem 0 0.5rem; color: #555; font-size: 1rem;">GameSerializer: single model</h3>
+<table>
+  <thead>
+    <tr><th>Framework</th><th>Iterations/s</th><th>vs fastest</th></tr>
+  </thead>
+  <tbody>
+    <tr class="winner"><td>json_serializers</td><td>56.8k i/s</td><td>fastest</td></tr>
+          <tr><td>panko</td><td>35.1k i/s</td><td>1.6x slower</td></tr>
+  </tbody>
+</table>
+
+  <h3 style="margin: 1rem 0 0.5rem; color: #555; font-size: 1rem;">ModelSerializer: 100 albums</h3>
+<table>
+  <thead>
+    <tr><th>Framework</th><th>Iterations/s</th><th>vs fastest</th></tr>
+  </thead>
+  <tbody>
+    <tr class="winner"><td>panko</td><td>1.0k i/s</td><td>fastest</td></tr>
+          <tr><td>json_serializers</td><td>1.0k i/s</td><td>1.0x slower</td></tr>
+          <tr><td>alba</td><td>686.0 i/s</td><td>1.5x slower</td></tr>
+          <tr><td>blueprinter</td><td>573.7 i/s</td><td>1.8x slower</td></tr>
+          <tr><td>active_model_serializers</td><td>495.4 i/s</td><td>2.1x slower</td></tr>
+  </tbody>
+</table>
+
+  <h3 style="margin: 1rem 0 0.5rem; color: #555; font-size: 1rem;">OptionSerializer: 100 albums</h3>
+<table>
+  <thead>
+    <tr><th>Framework</th><th>Iterations/s</th><th>vs fastest</th></tr>
+  </thead>
+  <tbody>
+    <tr class="winner"><td>panko</td><td>6.9k i/s</td><td>fastest</td></tr>
+          <tr><td>map_models</td><td>4.5k i/s</td><td>1.5x slower</td></tr>
+          <tr><td>json_serializers</td><td>4.2k i/s</td><td>1.6x slower</td></tr>
+          <tr><td>alba</td><td>1.7k i/s</td><td>4.0x slower</td></tr>
+          <tr><td>blueprinter</td><td>1.2k i/s</td><td>5.8x slower</td></tr>
+          <tr><td>active_model_serializers</td><td>863.8 i/s</td><td>7.9x slower</td></tr>
+  </tbody>
+</table>
+
+  </div>
+
+  <script>
+    function fmtIps(val) {
+      if (val >= 1000000) return (val/1000000).toFixed(1) + 'M';
+      if (val >= 1000) return (val/1000).toFixed(1) + 'k';
+      return val.toFixed(0);
+    }
+
+    const tooltipCallback = {
+      label: function(ctx) {
+        return ctx.dataset.label + ': ' + fmtIps(ctx.parsed.y || ctx.parsed.x) + ' i/s';
+      }
+    };
+
+    const yScaleIps = {
+      beginAtZero: true,
+      title: { display: true, text: 'Iterations per second' },
+      ticks: { callback: function(val) { return fmtIps(val); } }
+    };
+
+    const xScaleIps = {
+      beginAtZero: true,
+      title: { display: true, text: 'Iterations per second' },
+      ticks: { callback: function(val) { return fmtIps(val); } }
+    };
+
+    // Overview chart
+    new Chart(document.getElementById('overviewChart'), {
+      type: 'bar',
+      data: {
+        labels: ["AlbumSerializer: single model","AlbumSerializer: 100 albums","AlbumSerializer: 1000 albums","GameSerializer: single model","ModelSerializer: 100 albums","OptionSerializer: 100 albums"],
+        datasets: [{"label":"json_serializers","data":[9722.3,101.9,9.7,56754.2,1036.3,4172.9],"backgroundColor":"rgba(54, 162, 235, 0.8)","borderColor":"rgba(54, 162, 235, 1)","borderWidth":1},{"label":"panko","data":[5730.3,67.1,6.4,35133.6,1048.2,6851.4],"backgroundColor":"rgba(255, 159, 64, 0.8)","borderColor":"rgba(255, 159, 64, 1)","borderWidth":1},{"label":"blueprinter","data":[3458.6,36.5,3.5,0,573.7,1172.6],"backgroundColor":"rgba(75, 192, 192, 0.8)","borderColor":"rgba(75, 192, 192, 1)","borderWidth":1},{"label":"active_model_serializers","data":[3313.5,33.5,3.3,0,495.4,863.8],"backgroundColor":"rgba(255, 99, 132, 0.8)","borderColor":"rgba(255, 99, 132, 1)","borderWidth":1},{"label":"alba","data":[3551.8,34.2,3.5,0,686.0,1718.1],"backgroundColor":"rgba(153, 102, 255, 0.8)","borderColor":"rgba(153, 102, 255, 1)","borderWidth":1},{"label":"map_models","data":[0,0,0,0,0,4456.4],"backgroundColor":"rgba(201, 203, 207, 0.8)","borderColor":"rgba(201, 203, 207, 1)","borderWidth":1}]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { tooltip: { callbacks: tooltipCallback } },
+        scales: { y: yScaleIps }
+      }
+    });
+
+    // Individual scenario charts (horizontal bars)
+    new Chart(document.getElementById('chart0'), {
+  type: 'bar',
+  data: {
+    labels: ["json_serializers","panko","blueprinter","active_model_serializers","alba"],
+    datasets: [{
+      data: [9722.3,5730.3,3458.6,3313.5,3551.8],
+      backgroundColor: ["rgba(54, 162, 235, 0.8)","rgba(255, 159, 64, 0.8)","rgba(75, 192, 192, 0.8)","rgba(255, 99, 132, 0.8)","rgba(153, 102, 255, 0.8)"],
+      borderColor: ["rgba(54, 162, 235, 1)","rgba(255, 159, 64, 1)","rgba(75, 192, 192, 1)","rgba(255, 99, 132, 1)","rgba(153, 102, 255, 1)"],
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) { return fmtIps(ctx.parsed.x) + ' i/s'; }
+        }
+      }
+    },
+    scales: { x: xScaleIps }
+  }
+});
+new Chart(document.getElementById('chart1'), {
+  type: 'bar',
+  data: {
+    labels: ["json_serializers","panko","blueprinter","active_model_serializers","alba"],
+    datasets: [{
+      data: [101.9,67.1,36.5,33.5,34.2],
+      backgroundColor: ["rgba(54, 162, 235, 0.8)","rgba(255, 159, 64, 0.8)","rgba(75, 192, 192, 0.8)","rgba(255, 99, 132, 0.8)","rgba(153, 102, 255, 0.8)"],
+      borderColor: ["rgba(54, 162, 235, 1)","rgba(255, 159, 64, 1)","rgba(75, 192, 192, 1)","rgba(255, 99, 132, 1)","rgba(153, 102, 255, 1)"],
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) { return fmtIps(ctx.parsed.x) + ' i/s'; }
+        }
+      }
+    },
+    scales: { x: xScaleIps }
+  }
+});
+new Chart(document.getElementById('chart2'), {
+  type: 'bar',
+  data: {
+    labels: ["json_serializers","panko","blueprinter","active_model_serializers","alba"],
+    datasets: [{
+      data: [9.7,6.4,3.5,3.3,3.5],
+      backgroundColor: ["rgba(54, 162, 235, 0.8)","rgba(255, 159, 64, 0.8)","rgba(75, 192, 192, 0.8)","rgba(255, 99, 132, 0.8)","rgba(153, 102, 255, 0.8)"],
+      borderColor: ["rgba(54, 162, 235, 1)","rgba(255, 159, 64, 1)","rgba(75, 192, 192, 1)","rgba(255, 99, 132, 1)","rgba(153, 102, 255, 1)"],
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) { return fmtIps(ctx.parsed.x) + ' i/s'; }
+        }
+      }
+    },
+    scales: { x: xScaleIps }
+  }
+});
+new Chart(document.getElementById('chart3'), {
+  type: 'bar',
+  data: {
+    labels: ["json_serializers","panko"],
+    datasets: [{
+      data: [56754.2,35133.6],
+      backgroundColor: ["rgba(54, 162, 235, 0.8)","rgba(255, 159, 64, 0.8)"],
+      borderColor: ["rgba(54, 162, 235, 1)","rgba(255, 159, 64, 1)"],
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) { return fmtIps(ctx.parsed.x) + ' i/s'; }
+        }
+      }
+    },
+    scales: { x: xScaleIps }
+  }
+});
+new Chart(document.getElementById('chart4'), {
+  type: 'bar',
+  data: {
+    labels: ["json_serializers","panko","alba","blueprinter","active_model_serializers"],
+    datasets: [{
+      data: [1036.3,1048.2,686.0,573.7,495.4],
+      backgroundColor: ["rgba(54, 162, 235, 0.8)","rgba(255, 159, 64, 0.8)","rgba(153, 102, 255, 0.8)","rgba(75, 192, 192, 0.8)","rgba(255, 99, 132, 0.8)"],
+      borderColor: ["rgba(54, 162, 235, 1)","rgba(255, 159, 64, 1)","rgba(153, 102, 255, 1)","rgba(75, 192, 192, 1)","rgba(255, 99, 132, 1)"],
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) { return fmtIps(ctx.parsed.x) + ' i/s'; }
+        }
+      }
+    },
+    scales: { x: xScaleIps }
+  }
+});
+new Chart(document.getElementById('chart5'), {
+  type: 'bar',
+  data: {
+    labels: ["json_serializers","map_models","alba","panko","active_model_serializers","blueprinter"],
+    datasets: [{
+      data: [4172.9,4456.4,1718.1,6851.4,863.8,1172.6],
+      backgroundColor: ["rgba(54, 162, 235, 0.8)","rgba(201, 203, 207, 0.8)","rgba(153, 102, 255, 0.8)","rgba(255, 159, 64, 0.8)","rgba(255, 99, 132, 0.8)","rgba(75, 192, 192, 0.8)"],
+      borderColor: ["rgba(54, 162, 235, 1)","rgba(201, 203, 207, 1)","rgba(153, 102, 255, 1)","rgba(255, 159, 64, 1)","rgba(255, 99, 132, 1)","rgba(75, 192, 192, 1)"],
+      borderWidth: 1
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) { return fmtIps(ctx.parsed.x) + ' i/s'; }
+        }
+      }
+    },
+    scales: { x: xScaleIps }
+  }
+});
+
+  </script>
+</body>
+</html>

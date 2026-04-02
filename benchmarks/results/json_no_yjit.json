@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "ruby_version": "3.3.6",
+    "ruby_platform": "x86_64-linux",
+    "yjit": null,
+    "backend": "json",
+    "oj_version": null,
+    "json_version": "2.19.2",
+    "timestamp": "2026-03-20T12:02:09+00:00"
+  },
+  "results": [
+    {
+      "name": "one object (as_json + JSON.generate)",
+      "ips": 9694.5,
+      "stddev_pct": 4.12
+    },
+    {
+      "name": "one object (as_hash + JSON.generate)",
+      "ips": 16274.7,
+      "stddev_pct": 3.87
+    },
+    {
+      "name": "100 albums (as_json + JSON.generate)",
+      "ips": 103.6,
+      "stddev_pct": 1.93
+    },
+    {
+      "name": "100 albums (as_hash + JSON.generate)",
+      "ips": 166.4,
+      "stddev_pct": 3.61
+    },
+    {
+      "name": "1000 albums (as_json + JSON.generate)",
+      "ips": 9.4,
+      "stddev_pct": 10.65
+    },
+    {
+      "name": "1000 albums (as_hash + JSON.generate)",
+      "ips": 15.2,
+      "stddev_pct": 13.19
+    }
+  ]
+}

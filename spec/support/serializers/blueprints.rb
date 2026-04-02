@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'blueprinter'
-require 'oj_serializers/compat'
+require 'json_serializers/compat'
 
 Blueprinter.configure do |config|
   config.sort_fields_by = :definition

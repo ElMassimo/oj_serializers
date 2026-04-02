@@ -6,6 +6,7 @@
 /pkg/
 /spec/reports/
 /tmp/
+/log/
 /benchmark/flamegraphs/
 /gemfiles/*.lock
 

@@ -3,9 +3,9 @@
 # Public: Contains utility functions to render objects to JSON.
 #
 # Useful to instantiate a single `JsonWriter` when rendering new serializers.
-module OjSerializers::JsonStringEncoder
+module JsonSerializers::JsonStringEncoder
   class << self
-    # Public: Allows to use Oj::Serializer in `serializer` and `each_serializer`
+    # Public: Allows to use JsonSerializer in `serializer` and `each_serializer`
     # as with ActiveModelSerializers.
     #   render json: items, each_serializer: ItemSerializer
     #   render json: item, serializer: ItemSerializer
@@ -20,19 +20,20 @@ module OjSerializers::JsonStringEncoder
       elsif each_serializer
         each_serializer.many(object, options)
       elsif object.is_a?(String)
-        OjSerializers::JsonValue.new(object)
+        JsonSerializers::JsonValue.new(object)
       else
         object
       end
-      Oj.dump(root ? { root => result } : result)
+      payload = root ? { root => result } : result
+      JSON.generate(payload.as_json)
     end
 
-    if OjSerializers::Serializer::DEV_MODE
+    if JsonSerializers::Serializer::DEV_MODE
       alias actual_encode_to_json encode_to_json
       # Internal: Allows to detect misusage of the options during development.
       def encode_to_json(object, root: nil, serializer: nil, each_serializer: nil, **options)
-        raise ArgumentError, 'You must use `each_serializer` when serializing collections' if serializer && serializer < OjSerializers::Serializer && object.respond_to?(:map)
-        raise ArgumentError, 'You must use `serializer` when serializing a single object' if each_serializer && each_serializer < OjSerializers::Serializer && !object.respond_to?(:map)
+        raise ArgumentError, 'You must use `each_serializer` when serializing collections' if serializer && serializer < JsonSerializers::Serializer && object.respond_to?(:map)
+        raise ArgumentError, 'You must use `serializer` when serializing a single object' if each_serializer && each_serializer < JsonSerializers::Serializer && !object.respond_to?(:map)
 
         actual_encode_to_json(object, root: root, serializer: serializer, each_serializer: each_serializer, **options)
       end

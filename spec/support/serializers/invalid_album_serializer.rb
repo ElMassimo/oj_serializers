@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class InvalidAlbumSerializer < Oj::Serializer
+class InvalidAlbumSerializer < JsonSerializer
   attributes :release
 
   def release

@@ -15,13 +15,9 @@ RSpec.describe 'AlbumSerializer', :benchmark do
 
     it 'serializing a model' do
       album = Album.abraxas
-      Benchmark.ips do |x|
-        x.config(time: 5, warmup: 2)
-        x.report('oj_serializers as_hash') do
-          Oj.dump AlbumSerializer.one_as_hash(album)
-        end
-        x.report('oj_serializers') do
-          Oj.dump AlbumSerializer.one_as_json(album)
+      benchmark_section('AlbumSerializer: single model') do |x|
+        x.report('json_serializers') do
+          JSON.generate(AlbumSerializer.one(album))
         end
         x.report('panko') do
           AlbumPanko.new.serialize_to_json(album)
@@ -30,7 +26,7 @@ RSpec.describe 'AlbumSerializer', :benchmark do
           AlbumBlueprint.render(album)
         end
         x.report('active_model_serializers') do
-          Oj.dump LegacyAlbumSerializer.new(album)
+          JSON.generate(LegacyAlbumSerializer.new(album).as_json)
         end
         x.report('alba') do
           AlbumAlba.new(album).serialize
@@ -41,13 +37,9 @@ RSpec.describe 'AlbumSerializer', :benchmark do
 
     it 'serializing a collection' do
       albums = 100.times.map { Album.abraxas }
-      Benchmark.ips do |x|
-        x.config(time: 5, warmup: 2)
-        x.report('oj_serializers as_hash') do
-          Oj.dump AlbumSerializer.many_as_hash(albums)
-        end
-        x.report('oj_serializers') do
-          Oj.dump AlbumSerializer.many_as_json(albums)
+      benchmark_section('AlbumSerializer: 100 albums') do |x|
+        x.report('json_serializers') do
+          JSON.generate(AlbumSerializer.many(albums))
         end
         x.report('panko') do
           Panko::ArraySerializer.new(albums, each_serializer: AlbumPanko).to_json
@@ -56,7 +48,7 @@ RSpec.describe 'AlbumSerializer', :benchmark do
           AlbumBlueprint.render(albums)
         end
         x.report('active_model_serializers') do
-          Oj.dump(albums.map { |album| LegacyAlbumSerializer.new(album) })
+          JSON.generate(albums.map { |album| LegacyAlbumSerializer.new(album).as_json })
         end
         x.report('alba') do
           AlbumAlba.new(albums).serialize
@@ -67,13 +59,9 @@ RSpec.describe 'AlbumSerializer', :benchmark do
 
     it 'serializing a large collection' do
       albums = 1000.times.map { Album.abraxas }
-      Benchmark.ips do |x|
-        x.config(time: 5, warmup: 2)
-        x.report('oj_serializers as_hash') do
-          Oj.dump AlbumSerializer.many_as_hash(albums)
-        end
-        x.report('oj_serializers') do
-          Oj.dump AlbumSerializer.many_as_json(albums)
+      benchmark_section('AlbumSerializer: 1000 albums') do |x|
+        x.report('json_serializers') do
+          JSON.generate(AlbumSerializer.many(albums))
         end
         x.report('panko') do
           Panko::ArraySerializer.new(albums, each_serializer: AlbumPanko).to_json
@@ -82,7 +70,7 @@ RSpec.describe 'AlbumSerializer', :benchmark do
           AlbumBlueprint.render(albums)
         end
         x.report('active_model_serializers') do
-          Oj.dump(albums.map { |album| LegacyAlbumSerializer.new(album) })
+          JSON.generate(albums.map { |album| LegacyAlbumSerializer.new(album).as_json })
         end
         x.report('alba') do
           AlbumAlba.new(albums).serialize

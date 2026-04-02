@@ -2,9 +2,8 @@
 
 # Public: Allows to prevent double encoding an existing JSON string.
 #
-# NOTE: Oj's raw_json option means there's no performance overhead, as it would
-# occur with the previous alternative of parsing the JSON string.
-class OjSerializers::JsonValue
+# NOTE: Uses JSON::Fragment when available to avoid re-parsing overhead.
+class JsonSerializers::JsonValue
   # Public: Expects json to be a JSON-encoded string.
   def initialize(json)
     @json = json
@@ -22,13 +21,19 @@ class OjSerializers::JsonValue
     @json
   end
 
-  # Internal: Used by Oj::Rails::Encoder because we use the `raw_json` option.
+  # Internal: Returns the raw JSON string for libraries that support raw_json.
   def raw_json(*)
     @json
   end
 
-  # Internal: Used by Oj::Rails::Encoder when found inside a Hash or Array.
+  # Internal: Return the raw JSON string for JSON.generate compatibility.
+  def to_json(_options = nil)
+    @json
+  end
+
+  # Internal: Returns a JSON::Fragment so JSON.generate embeds the
+  # pre-encoded string directly without re-parsing.
   def as_json(_options = nil)
-    self
+    defined?(JSON::Fragment) ? JSON::Fragment.new(@json) : self
   end
 end

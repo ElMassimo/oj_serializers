@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "ruby_version": "3.3.6",
+    "ruby_platform": "x86_64-linux",
+    "yjit": null,
+    "backend": "oj",
+    "oj_version": "3.16.16",
+    "json_version": "2.19.2",
+    "timestamp": "2026-03-20T12:01:18+00:00"
+  },
+  "results": [
+    {
+      "name": "one object (as_json + Oj.dump)",
+      "ips": 14780.4,
+      "stddev_pct": 5.66
+    },
+    {
+      "name": "one object (as_hash + Oj.dump)",
+      "ips": 14986.3,
+      "stddev_pct": 5.58
+    },
+    {
+      "name": "100 albums (as_json + Oj.dump)",
+      "ips": 159.4,
+      "stddev_pct": 5.02
+    },
+    {
+      "name": "100 albums (as_hash + Oj.dump)",
+      "ips": 155.8,
+      "stddev_pct": 7.06
+    },
+    {
+      "name": "1000 albums (as_json + Oj.dump)",
+      "ips": 15.7,
+      "stddev_pct": 6.36
+    },
+    {
+      "name": "1000 albums (as_hash + Oj.dump)",
+      "ips": 16.1,
+      "stddev_pct": 6.23
+    }
+  ]
+}

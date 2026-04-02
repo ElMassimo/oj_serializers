@@ -1,0 +1,217 @@
+{
+  "metadata": {
+    "ruby_version": "3.3.6",
+    "ruby_platform": "x86_64-linux",
+    "yjit": null,
+    "json_version": "2.19.2",
+    "timestamp": "2026-03-25T12:27:22+00:00"
+  },
+  "scenarios": {
+    "AlbumSerializer: single model": [
+      {
+        "label": "json_serializers",
+        "ips": 9722.3,
+        "stddev_pct": 2.4
+      },
+      {
+        "label": "panko",
+        "ips": 5730.3,
+        "stddev_pct": 4.0
+      },
+      {
+        "label": "blueprinter",
+        "ips": 3458.6,
+        "stddev_pct": 5.12
+      },
+      {
+        "label": "active_model_serializers",
+        "ips": 3313.5,
+        "stddev_pct": 3.71
+      },
+      {
+        "label": "alba",
+        "ips": 3551.8,
+        "stddev_pct": 1.15
+      }
+    ],
+    "AlbumSerializer: 100 albums": [
+      {
+        "label": "json_serializers",
+        "ips": 101.9,
+        "stddev_pct": 0.98
+      },
+      {
+        "label": "panko",
+        "ips": 67.1,
+        "stddev_pct": 1.49
+      },
+      {
+        "label": "blueprinter",
+        "ips": 36.5,
+        "stddev_pct": 2.74
+      },
+      {
+        "label": "active_model_serializers",
+        "ips": 33.5,
+        "stddev_pct": 2.98
+      },
+      {
+        "label": "alba",
+        "ips": 34.2,
+        "stddev_pct": 2.92
+      }
+    ],
+    "AlbumSerializer: 1000 albums": [
+      {
+        "label": "json_serializers",
+        "ips": 9.7,
+        "stddev_pct": 10.29
+      },
+      {
+        "label": "panko",
+        "ips": 6.4,
+        "stddev_pct": 0.0
+      },
+      {
+        "label": "blueprinter",
+        "ips": 3.5,
+        "stddev_pct": 0.0
+      },
+      {
+        "label": "active_model_serializers",
+        "ips": 3.3,
+        "stddev_pct": 0.0
+      },
+      {
+        "label": "alba",
+        "ips": 3.5,
+        "stddev_pct": 0.0
+      }
+    ],
+    "Document Accessors": [
+      {
+        "label": "album.name",
+        "ips": 263340.5,
+        "stddev_pct": 4.64
+      },
+      {
+        "label": "album['name']",
+        "ips": 266878.5,
+        "stddev_pct": 1.97
+      },
+      {
+        "label": "album.attributes['name']",
+        "ips": 5335170.1,
+        "stddev_pct": 0.53
+      },
+      {
+        "label": "album.read_attribute('name')",
+        "ips": 255406.0,
+        "stddev_pct": 6.97
+      }
+    ],
+    "GameSerializer: single model": [
+      {
+        "label": "json_serializers",
+        "ips": 56754.2,
+        "stddev_pct": 1.53
+      },
+      {
+        "label": "panko",
+        "ips": 35133.6,
+        "stddev_pct": 6.06
+      }
+    ],
+    "ModelSerializer: 100 albums": [
+      {
+        "label": "json_serializers",
+        "ips": 1036.3,
+        "stddev_pct": 2.8
+      },
+      {
+        "label": "panko",
+        "ips": 1048.2,
+        "stddev_pct": 1.91
+      },
+      {
+        "label": "alba",
+        "ips": 686.0,
+        "stddev_pct": 2.33
+      },
+      {
+        "label": "blueprinter",
+        "ips": 573.7,
+        "stddev_pct": 2.27
+      },
+      {
+        "label": "active_model_serializers",
+        "ips": 495.4,
+        "stddev_pct": 2.83
+      }
+    ],
+    "OptionSerializer: 100 albums": [
+      {
+        "label": "json_serializers",
+        "ips": 4172.9,
+        "stddev_pct": 2.3
+      },
+      {
+        "label": "map_models",
+        "ips": 4456.4,
+        "stddev_pct": 1.32
+      },
+      {
+        "label": "alba",
+        "ips": 1718.1,
+        "stddev_pct": 3.32
+      },
+      {
+        "label": "panko",
+        "ips": 6851.4,
+        "stddev_pct": 3.43
+      },
+      {
+        "label": "active_model_serializers",
+        "ips": 863.8,
+        "stddev_pct": 3.13
+      },
+      {
+        "label": "blueprinter",
+        "ips": 1172.6,
+        "stddev_pct": 1.88
+      }
+    ],
+    "Record Accessors": [
+      {
+        "label": "player.first_name",
+        "ips": 2050537.6,
+        "stddev_pct": 0.42
+      },
+      {
+        "label": "player.send(:first_name)",
+        "ips": 1813335.5,
+        "stddev_pct": 0.89
+      },
+      {
+        "label": "player['first_name']",
+        "ips": 1347740.0,
+        "stddev_pct": 0.58
+      },
+      {
+        "label": "player.attributes['first_name']",
+        "ips": 182595.4,
+        "stddev_pct": 2.31
+      },
+      {
+        "label": "player.read_attribute('first_name')",
+        "ips": 1457685.8,
+        "stddev_pct": 0.35
+      },
+      {
+        "label": "player._read_attribute('first_name')",
+        "ips": 2149899.6,
+        "stddev_pct": 1.04
+      }
+    ]
+  }
+}
