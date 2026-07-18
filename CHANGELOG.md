@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fixes 🐞
+
+- Enable `use_raw_json` before `Oj.optimize_rails` so `JsonValue` is not double-encoded on Rails 8.1+.
+
 ## Oj Serializers 3.0.0 (2026-01-02)
 
 ### Features ✨
