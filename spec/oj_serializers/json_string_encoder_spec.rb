@@ -53,6 +53,14 @@ RSpec.describe OjSerializers::JsonStringEncoder, type: :serializer do
       expect(complex.as_json.to_json).to eq([{ complex: hash }].to_json)
       expect(OjSerializers::JsonValue.new(json_string).to_s).to eq json_string
     end
+
+    it 'encodes JsonValue through ActiveSupport without double-encoding it' do
+      json_string = hash.to_json
+      payload = { complex: OjSerializers::JsonValue.new(json_string) }
+
+      expect(payload.to_json).to eq({ complex: hash }.to_json)
+      expect(ActiveSupport::JSON.encode(payload)).to eq({ complex: hash }.to_json)
+    end
   end
 
   context 'models and old serializers' do
