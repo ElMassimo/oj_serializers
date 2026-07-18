@@ -1,4 +1,4 @@
-## Unreleased
+## Oj Serializers 3.0.1 (2026-07-17)
 
 ### Fixes 🐞
 
