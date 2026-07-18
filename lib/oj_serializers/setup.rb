@@ -4,10 +4,16 @@ require 'oj'
 
 # NOTE: We automatically set the necessary configuration unless it had been
 # explicitly set beforehand.
+#
+# `use_raw_json` must be enabled *before* `Oj.optimize_rails`. Rails 8.1
+# memoizes an option-less encoder when the JSON encoder is assigned (which
+# `Oj.optimize_rails` does), and `Oj::Rails::Encoder` captures `default_options`
+# at construction. Enabling `use_raw_json` afterwards leaves that memoized
+# encoder with `use_raw_json: false`, which double-encodes `JsonValue`.
 unless Oj.default_options[:use_raw_json]
   require 'rails'
-  Oj.optimize_rails
   Oj.default_options = { mode: :rails, use_raw_json: true }
+  Oj.optimize_rails
 end
 
 # NOTE: Add an optimization to make it easier to work with a StringWriter
