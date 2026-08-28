@@ -444,7 +444,13 @@ protected
 
   private
 
-    def add_attribute(value_from, root: nil, as: nil, **options)
+    def add_attribute(value_from, root: nil, as: nil, from: nil, **options)
+      # `from` is the inverse of `as`: the definition key becomes the output name.
+      if from
+        as ||= value_from
+        value_from = from
+      end
+
       # Because it's so common, automatically mark id as an identifier.
       options[:identifier] = true if value_from == :id && !options.key?(:identifier)
 

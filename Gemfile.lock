@@ -292,6 +292,7 @@ PLATFORMS
 DEPENDENCIES
   active_model_serializers (~> 0.8)
   alba
+  benchmark
   benchmark-ips
   benchmark-memory
   blueprinter (~> 0.8)

@@ -283,6 +283,17 @@ class SongSerializer < Oj::Serializer
 end
 ```
 
+Alternatively, use `from` to write the mapping the other way around: the key on
+the left is the output name, and `from` names the source method or attribute.
+
+```ruby
+class SongSerializer < Oj::Serializer
+  # These two definitions are equivalent:
+  attributes name: {as: :label, type: :string}
+  attributes label: {from: :name, type: :string}
+end
+```
+
 ### Conditional attributes ❔
 
 You can render attributes and associations conditionally by using `:if`.
