@@ -14,6 +14,7 @@ group :development, :test do
   gem 'active_model_serializers', '~> 0.8'
   gem 'alba'
   gem 'json'
+  gem 'benchmark' # No longer a default gem as of Ruby 4.0.
   gem 'benchmark-ips'
   gem 'benchmark-memory'
   gem 'blueprinter', '~> 0.8'
