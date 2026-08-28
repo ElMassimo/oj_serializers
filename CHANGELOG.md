@@ -1,3 +1,9 @@
+## Oj Serializers 3.0.2 (2026-08-28)
+
+### Features ✨
+
+- [feat: add `from` as the inverse of `as` for attribute definitions](https://github.com/ElMassimo/oj_serializers/pull/43)
+
 ## Oj Serializers 3.0.1 (2026-07-17)
 
 ### Fixes 🐞
